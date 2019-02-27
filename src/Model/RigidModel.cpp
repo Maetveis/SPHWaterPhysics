@@ -1,0 +1,1 @@
+#include "RigidModel.hpp"
