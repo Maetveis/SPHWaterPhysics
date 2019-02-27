@@ -14,11 +14,11 @@ class SceneManager :
 public:
 	void PushScene(std::unique_ptr<Scene> ptr);
 	void PopScene();
-	void ChangeScene(std::unique_ptr<Scene> ptr);
+	bool ChangeScene(std::unique_ptr<Scene> ptr);
 	Scene* currentScene() const;
-	
+
 	Scene* operator->() const;
-	
+
 	~SceneManager();
 protected:
 private:

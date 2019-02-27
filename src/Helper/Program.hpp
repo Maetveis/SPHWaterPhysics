@@ -15,11 +15,13 @@ class Program
 private:
 	GLuint programID;
 public:
-	Program() = default;
+	Program()
+	{
+		programID = glCreateProgram();
+	}
 
 	inline void CreateName()
 	{
-		programID = glCreateProgram();
 	}
 
 	inline explicit Program(GLuint p) :

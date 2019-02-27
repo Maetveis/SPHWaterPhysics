@@ -1,6 +1,8 @@
 #include "Game.h"
 
 #include "../Scene/InGameScene.h"
+#include "../Scene/SPHWaterScene.hpp"
+
 #include "../Log/Logger.h"
 #include "../Init/SDLInit.h"
 #include "../Model/WindowInfo.h"
@@ -47,7 +49,11 @@ bool Game::Init()
 
 	//Starting main Scene
 	sceneManager.AttachGame(this);
-	sceneManager.ChangeScene(std::make_unique<InGameScene>());
+	if(!sceneManager.ChangeScene(std::make_unique<SPHWaterScene>()))
+	{
+		Logger::Error << "Failed initializing first scene. Exiting\n";
+		return false;  
+	}
 
 	//Starting delta timer
 	timer.SetScaleFactor(1);

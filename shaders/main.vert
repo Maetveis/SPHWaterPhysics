@@ -1,22 +1,23 @@
 #version 400
 
-// VBO-ból érkezõ változók
+// VBO-bï¿½l ï¿½rkezï¿½ vï¿½ltozï¿½k
 layout(location = 0) in vec3 pos;
-layout(location = 1) in vec3 color;
 
-// a pipeline-ban tovább adandó értékek
-out VertexData
+// a pipeline-ban tovï¿½bb adandï¿½ ï¿½rtï¿½kek
+out gl_PerVertex
 {
-	vec4 out_col;
-	vec4 out_pos;
+	vec4 gl_Position;
 };
 
-uniform mat4 projection;
-uniform mat4 modelView;
+out VertexData
+{
+	vec3 out_pos;
+};
+
+uniform mat4 proj;
 
 void main()
 {
-	out_pos = modelView * vec4( pos, 1 );
-	gl_Position = projection * out_pos;
-	out_col = vec4(color, 1);
+	out_pos = pos;
+	gl_Position = proj * vec4(pos, 1);
 }

@@ -1,0 +1,28 @@
+#version 450
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in; // workgroup size
+
+layout(std430, binding = 0) buffer positionBuffer
+{
+        vec3 position[];
+};
+
+uniform float dt;
+uniform vec3 target;
+
+void main()
+{
+    uint x = gl_GlobalInvocationID.x;
+    uint y = gl_GlobalInvocationID.y;
+    uint z = gl_GlobalInvocationID.z;
+
+    uint resZ = gl_NumWorkGroups.z * gl_WorkGroupSize.z;
+    uint resY = gl_NumWorkGroups.y * gl_WorkGroupSize.y;
+    uint id = x * resY * resZ + y * resZ + z;
+
+    vec3 toTarget = target - position[id];
+    float l = length(toTarget);
+    float strength = l * l - 3.0;
+
+    position[id] += strength * toTarget * dt;
+}

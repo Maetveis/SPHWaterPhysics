@@ -22,7 +22,7 @@ endif
 
 SRCS := DataStore/GPUAllocator.cpp \
 	Main/main.cpp Main/Game.cpp Main/ScaledDeltaTimer.cpp \
-	Scene/InGameScene.cpp \
+	Scene/InGameScene.cpp Scene/SPHWaterScene.cpp \
 	Model/Mesh/Mesh3D.cpp Model/WindowInfo.cpp Model/FrameParams.cpp Model/LightParams.cpp Model/Material/MaterialParams.cpp Model/ModelLoader.cpp \
 	Init/SDLInit.cpp Init/GlewInit.cpp \
 	Manager/WindowManager.cpp Manager/SceneManager.cpp \
