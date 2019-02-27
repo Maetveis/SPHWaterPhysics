@@ -26,7 +26,7 @@ SRCS := DataStore/GPUAllocator.cpp \
 	Model/Mesh/Mesh3D.cpp Model/WindowInfo.cpp Model/FrameParams.cpp Model/LightParams.cpp Model/Material/MaterialParams.cpp Model/ModelLoader.cpp \
 	Init/SDLInit.cpp Init/GlewInit.cpp \
 	Manager/WindowManager.cpp Manager/SceneManager.cpp \
-	Helper/Program.cpp Helper/UniformBuffer.cpp Helper/Shader.cpp Helper/Utility.cpp \
+	Helper/Program.cpp Helper/UniformBuffer.cpp Helper/Shader.cpp Helper/Utility.cpp Helper/ShaderStorage.cpp \
 	Program/Mesh3DColor.cpp
 
 OBJNAMES := $(SRCS:.cpp=.o)
