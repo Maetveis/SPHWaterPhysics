@@ -1,0 +1,54 @@
+#version 450
+
+layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+
+layout(std430) restrict readonly buffer positionBuffer
+{
+    vec3 position[];
+};
+
+struct gridIndex
+{
+    uint id;
+    uint localOffset;
+};
+
+layout(std430) restrict writeonly buffer indexBuffer
+{
+	gridIndex particleGridIndex[];
+};
+
+layout(std430) restrict coherent buffer gridBuffer
+{
+	uint gridElemCount[];
+};
+
+layout(location = 0) uniform uint gridResolution;
+
+uvec3 vertexResolution = gl_NumWorkGroups * gl_WorkGroupSize;
+
+void main()
+{
+    uint vertexId =
+        gl_GlobalInvocationID.x * vertexResolution.y * vertexResolution.z +
+        gl_GlobalInvocationID.y * vertexResolution.z +
+        gl_GlobalInvocationID.z;
+
+    //This is somehow different than just copying normalized into the floor
+    uvec3 gridId = uvec3((position[vertexId] + 1.0f) * gridResolution) / 2;
+
+    //uvec3 gridId = uvec3(floor((position[vertexId] + 1.0f) * gridResolution)) / 2;
+
+    /*vec3 normalized = (position[vertexId] + 1) / 2 * gridResolution;
+    uvec3 gridId = uvec3(normalized);*/
+
+    uint flatGridId = uint (
+        gridId.x * gridResolution * gridResolution +
+        gridId.y * gridResolution +
+        gridId.z);
+
+    gridIndex grid;
+    grid.id = flatGridId;
+    grid.localOffset = atomicAdd(gridElemCount[flatGridId], 1);
+    particleGridIndex[vertexId] = grid;
+}

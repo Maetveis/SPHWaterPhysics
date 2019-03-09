@@ -1,0 +1,22 @@
+#version 450
+
+layout(local_size_x = 1) in;
+
+layout(std430, binding = 6) restrict buffer superBlockBuffer
+{
+	uint superGrid[];
+};
+
+const uint maxOffset = 512;
+
+void main()
+{
+	uint prefix = superGrid[0];
+	superGrid[0] = 0;
+	for(uint offset = 1; offset < maxOffset; ++offset)
+	{
+		uint temp = superGrid[offset];
+		superGrid[offset] = prefix;
+		prefix += temp;
+	}
+}

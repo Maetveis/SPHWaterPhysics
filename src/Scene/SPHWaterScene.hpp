@@ -9,6 +9,10 @@
 #include "../Helper/VertexArray.hpp"
 #include "../Helper/VertexArrayBinding.hpp"
 
+#include "../SPHSimulation/SimulationState.hpp"
+
+#include "../Program/GridProgram.hpp"
+
 #include <GL/glew.h>
 
 class SPHWaterScene : public Scene
@@ -16,8 +20,8 @@ class SPHWaterScene : public Scene
 private:
 	GL::Program gravityProgram;
 	GL::Program renderProgram;
-	GL::Buffer storageBuffer;
-	GL::ShaderStorage storage;
+	//GL::Buffer storageBuffer;
+	//GL::ShaderStorage storage;
 
 	GL::VertexArray va;
 	GL::VertexArrayBinding vb;
@@ -26,7 +30,16 @@ private:
 	GLint dtLocation;
 
 	GLint projLocation;
+
+	SimulationState state;
+	GridProgram grid;
 public:
+	SPHWaterScene() :
+		state(128, 128, 128, 32),
+		grid(state)
+	{
+	}
+
 	virtual bool Begin() override;
 	virtual void End() override;
 	virtual void Pause() override;

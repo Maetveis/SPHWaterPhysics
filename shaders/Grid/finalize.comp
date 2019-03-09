@@ -1,0 +1,41 @@
+/*
+
+*/
+#version 450
+
+layout(local_size_x = 512) in;
+
+layout(std430, binding = 5) restrict buffer gridBuffer
+{
+	uint gridElemPrefix[];
+};
+
+layout(std430, binding = 6) restrict readonly buffer superBlockBuffer
+{
+	uint superGrid[];
+};
+
+shared uint prefix;
+
+void main()
+{
+	if(gl_LocalInvocationIndex == 0)
+	{
+		/*uint superBlockIndex =
+			gl_WorkGroupID.x * gl_NumWorkGroups.y * gl_NumWorkGroups.y
+			gl_WorkGroupID.y * gl_NumWorkGroups.z +
+			gl_WorkGroupID.z;*/
+
+		prefix = superGrid[gl_WorkGroupID.x];
+	}
+
+	barrier();
+
+	/*uint gridIndex =
+		gl_GlobalInvocationID.x * resolution.y * resolution.z +
+		gl_GlobalInvocationID.y * resolution.z +
+		gl_GlobalInvocationID.z;*/
+
+	gridElemPrefix[gl_GlobalInvocationID.x] += prefix;
+
+}

@@ -1,0 +1,59 @@
+#version 450
+
+layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+
+layout(std430, binding = 0) restrict readonly buffer positionBuffer
+{
+    vec3 positions[];
+};
+
+/*layout(std430, binding = 2) restrict readonly buffer velocityBuffer
+{
+	vec3 velocities[];
+};*/
+
+/*layout(std430, binding = 3) restrict writeonly buffer velocityNewBuffer
+{
+    vec3 newVelocities[];
+};*/
+
+layout(std430, binding = 1) restrict writeonly buffer positionNewBuffer
+{
+    vec3 newPositions[];
+};
+
+struct gridIndex
+{
+    uint id;
+    uint localOffset;
+};
+
+layout(std430, binding = 4) restrict readonly buffer indexBuffer
+{
+	gridIndex particleGridIndex[];
+};
+
+layout(std430, binding = 5) restrict readonly buffer gridBuffer
+{
+	uint gridElemOffset[];
+};
+
+uniform float gridResolution;
+
+uvec3 vertexResolution = gl_NumWorkGroups * gl_WorkGroupSize;
+
+void main()
+{
+	uint oldId =
+        gl_GlobalInvocationID.x * vertexResolution.y * vertexResolution.z +
+        gl_GlobalInvocationID.y * vertexResolution.z +
+        gl_GlobalInvocationID.z;
+
+	gridIndex grid = particleGridIndex[oldId];
+
+	uint newId = grid.localOffset + gridElemOffset[grid.id];
+
+    newPositions[newId] = positions[oldId];
+
+    //newVelocities[newId] = velocities[oldId];
+}

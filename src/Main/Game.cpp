@@ -35,6 +35,25 @@ void Game::Run()
 	Destroy();
 }
 
+void LogGLDebug(GLenum source​, GLenum type​, GLuint id​,
+	GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
+{
+	switch (severity​) {
+		case GL_DEBUG_SEVERITY_HIGH:
+			Logger::Error << "Opengl: " << message​ << '\n';
+			break;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			Logger::Warning << "Opengl: " << message​ << '\n';
+			break;
+		case GL_DEBUG_SEVERITY_LOW:
+			Logger::Warning << "Opengl low warning: " << message​ << '\n';
+			break;
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			Logger::Info << "Opengl notification: " << message​ << '\n';
+			break;
+	}
+}
+
 bool Game::Init()
 {
 	if (!SDLInit::Init())
@@ -47,12 +66,15 @@ bool Game::Init()
 	info.SetTitle("asd dev");
 	windowManager.SpawnWindow(info);
 
+	//Enable opengl debug output
+	glDebugMessageCallback(LogGLDebug, nullptr);
+
 	//Starting main Scene
 	sceneManager.AttachGame(this);
 	if(!sceneManager.ChangeScene(std::make_unique<SPHWaterScene>()))
 	{
 		Logger::Error << "Failed initializing first scene. Exiting\n";
-		return false;  
+		return false;
 	}
 
 	//Starting delta timer
@@ -163,7 +185,7 @@ void Game::DelayFrameTime(const unsigned frameStart, const unsigned short target
 	int delay = targetLength - frameLenght;
 	if(delay > 0)
 	{
-		SDL_Delay(delay);
+	//	SDL_Delay(delay);
 	}
 }
 

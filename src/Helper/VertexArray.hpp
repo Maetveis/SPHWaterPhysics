@@ -27,6 +27,11 @@ public:
 		glBindVertexArray(id);
 	}
 
+	inline void UnBind() const
+	{
+		glBindVertexArray(0);
+	}
+
 	inline void AttachIndex(const Buffer& indexBuffer)
 	{
 		glVertexArrayElementBuffer(id, indexBuffer.GetId());

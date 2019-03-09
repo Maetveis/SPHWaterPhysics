@@ -68,6 +68,11 @@ public:
 		return glGetUniformBlockIndex(programID, name);
 	}
 
+	inline GLuint GetShaderStorageBlockIndex(const char* name) const
+	{
+		return glGetProgramResourceIndex(programID, GL_SHADER_STORAGE_BLOCK, name);
+	}
+
 	inline void AttachShader(const Shader& shader)
 	{
 		glAttachShader(programID, shader.GetId());
