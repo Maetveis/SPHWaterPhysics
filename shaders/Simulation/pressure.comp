@@ -55,10 +55,10 @@ void loadPositions()
 
 }
 
-float kernel(const in vec3 vec)
+float kernel(const in float r2)
 {
 	//Poly6 kernel
-	float base = (smoothingLength * smoothingLength - dot(vec, vec));
+	float base = (smoothingLength * smoothingLength - r2);
 	return base * base * base;
 }
 
@@ -72,12 +72,13 @@ void updatePressure()
 	for(uint index = 0; index < particleCount; ++index)
 	{
 		vec3 deltaPos = sharedPosition[index] - selfpos;
-		float dist = length(deltaPos);
-		if(dist < smoothingLength)
+		float r2 = dot(deltaPos, deltaPos);
+		if(r2 < smoothingLength * smoothingLength)
 		{
-			density += kernel(deltaPos);
+			density += kernel(r2);
 		}
 	}
+
 	pressure[gridIndex[1][1][1].globalOffset + gl_LocalInvocationIndex] = stiffness * (density - restDensity);
 }
 
