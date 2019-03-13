@@ -2,7 +2,6 @@
 #define GRID_PROGRAM_HPP
 
 #include "../Helper/Program.hpp"
-#include "../Helper/ShaderStorage.hpp"
 
 class SimulationState;
 
