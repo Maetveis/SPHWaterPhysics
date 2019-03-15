@@ -19,6 +19,8 @@ private:
 	GL::Buffer gridBuffer;
 	GL::Buffer superBlockBuffer;
 
+	GL::Buffer pressureBuffer;
+
 	GL::ShaderStorage positionStorage1;
 	GL::ShaderStorage positionStorage2;
 	GL::ShaderStorage velocityStorage1;
@@ -27,6 +29,8 @@ private:
 	GL::ShaderStorage superBlockStorage;
 	GL::ShaderStorage gridStorage;
 	GL::ShaderStorage particleIndexStorage;
+
+	GL::ShaderStorage pressureStorage;
 
 	/*static constexpr GLuint Position = 0;
 	static constexpr GLuint PositionTemp = 1;
@@ -92,6 +96,11 @@ public:
 	inline void AttachParticleIndex(const GL::Program& program, const char* name)
 	{
 		particleIndexStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+	}
+
+	inline void AttachPressure(const GL::Program& program, const char* name)
+	{
+		pressureStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
 	}
 
 	inline unsigned ResX() const

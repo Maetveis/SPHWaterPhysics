@@ -21,6 +21,8 @@ SimulationState::SimulationState(unsigned _resX, unsigned _resY, unsigned _resZ,
 	superBlockStorage.AttachBuffer(superBlockBuffer);
 	gridStorage.AttachBuffer(gridBuffer);
 	particleIndexStorage.AttachBuffer(particleIndexBuffer);
+
+	pressureStorage.AttachBuffer(pressureBuffer);
 }
 
 struct alignas(16) SimulationState::alignedVector
@@ -75,6 +77,8 @@ void SimulationState::InitBuffers()
 	unsigned edgeLength = gridResolution;
 	gridBuffer.InitEmpty(edgeLength * edgeLength * edgeLength * sizeof(GLuint), GL_DYNAMIC_COPY);
 	superBlockBuffer.InitEmpty(edgeLength * edgeLength * edgeLength * sizeof(GLuint) / 512, GL_DYNAMIC_COPY);
+
+	pressureBuffer.InitEmpty(data.size() * sizeof(GLfloat), GL_DYNAMIC_COPY);
 
 	//Note to self: forgeting syncronization screws things up so dont do it
 	glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);

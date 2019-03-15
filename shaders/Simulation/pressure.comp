@@ -16,11 +16,11 @@ layout(std430) restrict writeonly buffer pressureBuffer
 layout(std430) restrict readonly buffer gridBuffer
 {
 	uint gridOffset[];
-}
+};
 
-const uint numGridCells = 32;
-const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;
-const uint numParticles = 0x400000;
+const uint numGridCells = 16;
+const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
+const uint numParticles = 0x40000;
 
 layout(location = 0) uniform float smoothingLength;
 layout(location = 1) uniform float stiffness;
@@ -33,7 +33,7 @@ struct gridCell
 	uint globalOffset;
 	uint localOffset;
 	uint len;
-}
+};
 
 shared gridCell gridIndex[3][3][3];
 
@@ -58,16 +58,16 @@ void loadPositions()
 float kernel(const in float r2)
 {
 	//Poly6 kernel
-	float base = (smoothingLength * smoothingLength - r2);
-	return base * base * base;
+    float base = (smoothingLength * smoothingLength - r2);
+	return 4 * base * base * base / pow(smoothingLength, 1) / 3.14115 ;
 }
 
 void updatePressure()
 {
-	if(gl_LocalInvocationIndex >= gridIndex[1][1][1].len)
-		return;
+    if(gl_LocalInvocationIndex >= gridIndex[1][1][1].len)
+	   return;
 
-	vec3 selfpos = sharedPosition[gl_LocalInvocationIndex];
+	vec3 selfpos = sharedPosition[gridIndex[1][1][1].localOffset + gl_LocalInvocationIndex];
 	float density = 0;
 	for(uint index = 0; index < particleCount; ++index)
 	{
@@ -79,16 +79,11 @@ void updatePressure()
 		}
 	}
 
-	pressure[gridIndex[1][1][1].globalOffset + gl_LocalInvocationIndex] = stiffness * (density - restDensity);
+	pressure[gridIndex[1][1][1].globalOffset + gl_LocalInvocationIndex] = stiffness * density;
 }
 
 void calculateGridIndices()
 {
-	uint globalOffset = max(
-		(gl_WorkGroupID.x - 1) * numGridCells * numGridCells +
-		(gl_WorkGroupID.y - 1) * numGridCells +
-		(gl_WorkGroupID.z - 1), 0);
-
 	uint localOffset = 0;
 
 	for(int x = 0; x < 3; ++x)
@@ -97,23 +92,37 @@ void calculateGridIndices()
 		{
 			for(int z = 0; z < 3; ++z)
 			{
-				if(offset < numGridCellsCubed - 1)
-					gridIndex[x][y][z].len = gridOffset[offset + 1] - gridIndex[x][y][z].offset;
-					gridIndex[x][y][z].offset = gridOffset[offset];
-					gridIndex[x][y][z].localOffset = localOffset;
-				else if (offset < numGridCellsCubed)
-					gridIndex[x][y][z].len = numParticles - gridIndex[x][y][z].offset;
-					gridIndex[x][y][z].offset = gridOffset[offset];
-					gridIndex[x][y][z].localOffset = localOffset;
-				else
-					gridIndex[x][y][z].len = 0;
+                if( any(lessThan(gl_WorkGroupID + uvec3(x, y, z), uvec3(1))) || any(lessThan(uvec3(numGridCells + 1), gl_WorkGroupID + uvec3(x, y, z))) )
+                {
+                    gridIndex[x][y][z].len = 0;
+                    continue;
+                }
 
-				globalOffset += 1;
+                uint globalOffset =
+                    gl_WorkGroupID.x * numGridCells * numGridCells +
+                    gl_WorkGroupID.y * numGridCells +
+                    gl_WorkGroupID.z;
+
+				if(globalOffset < numGridCellsCubed - 1)
+                {
+                    gridIndex[x][y][z].globalOffset = gridOffset[globalOffset];
+                    gridIndex[x][y][z].len = gridOffset[globalOffset + 1] - gridIndex[x][y][z].globalOffset;
+                    gridIndex[x][y][z].localOffset = localOffset;
+                }
+				else if (globalOffset < numGridCellsCubed)
+                {
+                    gridIndex[x][y][z].globalOffset = gridOffset[globalOffset];
+                    gridIndex[x][y][z].len = numParticles - gridIndex[x][y][z].globalOffset;
+                    gridIndex[x][y][z].localOffset = localOffset;
+                }
+				else
+                {
+                    gridIndex[x][y][z].len = 0;
+                }
+
 				localOffset += gridIndex[x][y][z].len;
 			}
-			globalOffset += numGridCells - 3;
 		}
-		globalOffset += numGridCells * numGridCells - 9;
 	}
 
 	particleCount = localOffset;
@@ -123,16 +132,17 @@ void main()
 {
 	if(gl_LocalInvocationIndex == 0)
 	{
+        particleCount = 0;
 		calculateGridIndices();
 	}
 
-	memoryBarrierShared();
 	barrier();
+    memoryBarrierShared();
 
 	loadPositions();
 
-	memoryBarrierShared();
 	barrier();
+    memoryBarrierShared();
 
 	updatePressure();
 }

@@ -1,0 +1,35 @@
+ATTENTION: default value of option vblank_mode overridden by environment.
+[Info] Opengl version: 4.5 (Core Profile) Mesa 18.2.2
+[Debug] Created glBuffer with id: 1
+[Debug] Created glBuffer with id: 2
+[Debug] Created glBuffer with id: 3
+[Debug] Created glBuffer with id: 4
+[Debug] Created glBuffer with id: 5
+[Debug] Created glBuffer with id: 6
+[Debug] Created glBuffer with id: 7
+[Debug] Created glBuffer with id: 8
+[Debug] Created shader storage buffer with binding index: 0
+[Debug] Created shader storage buffer with binding index: 1
+[Debug] Created shader storage buffer with binding index: 2
+[Debug] Created shader storage buffer with binding index: 3
+[Debug] Created shader storage buffer with binding index: 4
+[Debug] Created shader storage buffer with binding index: 5
+[Debug] Created shader storage buffer with binding index: 6
+[Debug] Created shader storage buffer with binding index: 7
+[Debug] Maximum size of shader local storage: 32768
+[Info] Opengl notification: uniforms
+[Info] Opengl notification: Scene Init
+[Info] Opengl notification: Shader Stats: SGPRS: 8 VGPRS: 28 Code Size: 36 LDS: 0 Scratch: 0 Max Waves: 8 Spilled SGPRs: 0 Spilled VGPRs: 0 PrivMem VGPRs: 0
+[Info] Opengl notification: Shader Stats: SGPRS: 24 VGPRS: 12 Code Size: 288 LDS: 0 Scratch: 0 Max Waves: 8 Spilled SGPRs: 0 Spilled VGPRs: 0 PrivMem VGPRs: 0
+[Info] Opengl notification: Shader Stats: SGPRS: 8 VGPRS: 24 Code Size: 40 LDS: 0 Scratch: 0 Max Waves: 8 Spilled SGPRs: 0 Spilled VGPRs: 0 PrivMem VGPRs: 0
+[Info] Opengl notification: Shader Stats: SGPRS: 8 VGPRS: 8 Code Size: 80 LDS: 0 Scratch: 0 Max Waves: 8 Spilled SGPRs: 0 Spilled VGPRs: 0 PrivMem VGPRs: 0
+[Info] Opengl notification: LLVM diagnostic (remark): <unknown>:0:0: 2 instructions in function
+[Info] Opengl notification: LLVM diagnostic (remark): <unknown>:0:0: 4 instructions in function
+[Info] Opengl notification: LLVM diagnostic (remark): <unknown>:0:0: 3 instructions in function
+[Info] Opengl notification: LLVM diagnostic (remark): <unknown>:0:0: 36 instructions in function
+[Info] Opengl notification: Shader Stats: SGPRS: 24 VGPRS: 12 Code Size: 224 LDS: 0 Scratch: 0 Max Waves: 8 Spilled SGPRs: 0 Spilled VGPRs: 0 PrivMem VGPRs: 0
+[Info] Opengl notification: LLVM diagnostic (remark): <unknown>:0:0: 6 instructions in function
+[Info] Opengl notification: Shader Stats: SGPRS: 8 VGPRS: 24 Code Size: 40 LDS: 0 Scratch: 0 Max Waves: 8 Spilled SGPRs: 0 Spilled VGPRs: 0 PrivMem VGPRs: 0
+[Info] Opengl notification: LLVM diagnostic (remark): <unknown>:0:0: 28 instructions in function
+[Info] Opengl notification: Shader Stats: SGPRS: 24 VGPRS: 12 Code Size: 180 LDS: 0 Scratch: 0 Max Waves: 8 Spilled SGPRs: 0 Spilled VGPRs: 0 PrivMem VGPRs: 0
+[Info] Opengl notification: LLVM diagnostic (remark): <unknown>:0:0: 8 instructions in function

@@ -16,6 +16,7 @@
 #include <glm/gtx/transform2.hpp>
 
 constexpr const char* positionBufferName = "positionBuffer";
+constexpr const char* pressureBufferName = "pressureBuffer";
 constexpr const char* indexBufferName = "indexBuffer";
 
 void SPHWaterScene::OnWindow(SDL_WindowEvent& event)
@@ -91,6 +92,9 @@ bool SPHWaterScene::Begin()
 
 	glPopDebugGroup();
 
+	state.AttachPressure(renderProgram, pressureBufferName);
+	state.AttachPressure(gravityProgram, pressureBufferName);
+
 	glPopDebugGroup();
 
 	return true;
@@ -122,6 +126,7 @@ void SPHWaterScene::Update(const double delta)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	grid.Run();
+	simulation.Run();
 
 	t += delta;
 
@@ -166,13 +171,13 @@ void SPHWaterScene::Render()
 
 	va.UnBind();
 
-	GLsync wait = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	/*GLsync wait = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	glFlush();
 
 	glWaitSync(wait, 0, GL_TIMEOUT_IGNORED);
 	glClientWaitSync(wait, 0, 10000000000000);
 
-	glDeleteSync(wait);
+	glDeleteSync(wait);*/
 }
 
 SPHWaterScene::~SPHWaterScene()

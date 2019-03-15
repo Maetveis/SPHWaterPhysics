@@ -12,6 +12,7 @@
 #include "../SPHSimulation/SimulationState.hpp"
 
 #include "../Program/GridProgram.hpp"
+#include "../Program/SimulationProgram.hpp"
 
 #include <GL/glew.h>
 
@@ -33,10 +34,12 @@ private:
 
 	SimulationState state;
 	GridProgram grid;
+	SimulationProgram simulation;
 public:
 	SPHWaterScene() :
-		state(128, 128, 128, 32),
-		grid(state)
+		state(64, 64, 64, 16),
+		grid(state),
+		simulation(state)
 	{
 	}
 

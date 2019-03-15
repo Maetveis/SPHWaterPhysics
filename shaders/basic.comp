@@ -7,6 +7,11 @@ layout(std430, binding = 0) restrict coherent buffer positionBuffer
     vec3 position[];
 };
 
+layout(std430) restrict readonly buffer pressureBuffer
+{
+	float pressure[];
+};
+
 uniform float dt;
 uniform vec3 target;
 
@@ -20,9 +25,11 @@ void main()
         gl_GlobalInvocationID.z;
 
     vec3 pos = position[id];
-    vec3 toTarget = - pos;
+    vec3 toTarget = target - pos;
     float l = length(toTarget);
-    float strength = l * l - 1.0;
+    float strength = min(l * l - 0.4, 5.0);
 
-    position[id] = pos + strength * toTarget * dt * 0.5;
+    position[id] = pos +
+        0.1 * strength * toTarget * dt +
+        0.1 * dt * toTarget * max(0.3 - pressure[id], -5.0);
 }

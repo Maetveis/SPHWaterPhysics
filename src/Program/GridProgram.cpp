@@ -83,7 +83,7 @@ void GridProgram::Run()
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 	offset.Use();
-	const unsigned l = state.GridRes() / 4;
+	const unsigned l = state.GridRes() / 8;
 	glDispatchCompute(l, l, l);
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
