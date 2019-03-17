@@ -1,0 +1,289 @@
+#version 450
+
+//Max particles in grid cell is 64
+layout(local_size_x = 64) in;
+
+layout(std430) restrict readonly buffer positionBuffer
+{
+    vec3 position[];
+};
+
+layout(std430) restrict readonly buffer velocityBuffer
+{
+    vec3 velocity[];
+};
+
+layout(std430) restrict readonly buffer densityBuffer
+{
+    float density[];
+};
+
+layout(std430) restrict readonly buffer pressureBuffer
+{
+	float pressure[];
+};
+
+layout(std430) restrict readonly buffer gridBuffer
+{
+	uint gridOffset[];
+};
+
+layout(std430) restrict writeonly buffer forceBuffer
+{
+    vec3 force[];
+};
+
+const float viscosity = 1.0;
+
+const uint numGridCells = 32;
+const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
+const uint numParticles = 0x40000;
+const float mass = 1.0;
+
+layout(location = 0) uniform float smoothingLength;
+
+shared vec3 sharedPosition [27 * 16];
+shared vec3 sharedVelocity [27 * 16];
+shared float sharedPressure[27 * 16];
+shared float sharedDensity [27 * 16];
+
+shared vec3 sharedForce[64];
+
+struct gridCell
+{
+	uint globalOffset;
+	uint localOffset;
+	uint len;
+};
+
+shared gridCell gridIndex[3][3][3];
+
+shared uint particleCount;
+
+void loadData00()
+{
+    uint particleIndex = gl_LocalInvocationIndex / 4;
+    for(int x = 0; x < 2; ++x)
+    {
+        for(int z = 0; z < 3; ++z)
+        {
+            if(particleIndex < gridIndex[x][0][z].len)
+            {
+                sharedPosition[gridIndex[x][0][z].localOffset + particleIndex] = position[gridIndex[x][0][z].globalOffset + particleIndex];
+                sharedVelocity[gridIndex[x][0][z].localOffset + particleIndex] = velocity[gridIndex[x][0][z].globalOffset + particleIndex];
+                sharedPressure[gridIndex[x][0][z].localOffset + particleIndex] = pressure[gridIndex[x][0][z].globalOffset + particleIndex];
+                sharedDensity [gridIndex[x][0][z].localOffset + particleIndex] = density [gridIndex[x][0][z].globalOffset + particleIndex];
+            }
+        }
+    }
+}
+
+void loadData01()
+{
+    uint particleIndex = gl_LocalInvocationIndex / 4;
+    for(int x = 0; x < 2; ++x)
+    {
+        for(int y = 1; y < 3; ++y)
+        {
+            for(int z = 0; z < 3; ++z)
+            {
+                if(particleIndex < gridIndex[x][y][z].len)
+                {
+                    sharedPosition[gridIndex[x][y][z].localOffset + particleIndex] = position[gridIndex[x][y][z].globalOffset + particleIndex];
+                    sharedVelocity[gridIndex[x][y][z].localOffset + particleIndex] = velocity[gridIndex[x][y][z].globalOffset + particleIndex];
+                    sharedPressure[gridIndex[x][y][z].localOffset + particleIndex] = pressure[gridIndex[x][y][z].globalOffset + particleIndex];
+                    sharedDensity [gridIndex[x][y][z].localOffset + particleIndex] = density [gridIndex[x][y][z].globalOffset + particleIndex];
+                }
+            }
+        }
+    }
+}
+
+void loadData10()
+{
+    uint particleIndex = gl_LocalInvocationIndex / 4;
+    for(int y = 0; y < 2; ++y)
+    {
+        for(int z = 0; z < 3; ++z)
+        {
+            if(particleIndex < gridIndex[2][y][z].len)
+            {
+                sharedPosition[gridIndex[2][y][z].localOffset + particleIndex] = position[gridIndex[2][y][z].globalOffset + particleIndex];
+                sharedVelocity[gridIndex[2][y][z].localOffset + particleIndex] = velocity[gridIndex[2][y][z].globalOffset + particleIndex];
+                sharedPressure[gridIndex[2][y][z].localOffset + particleIndex] = pressure[gridIndex[2][y][z].globalOffset + particleIndex];
+                sharedDensity [gridIndex[2][y][z].localOffset + particleIndex] = density [gridIndex[2][y][z].globalOffset + particleIndex];
+            }
+        }
+    }
+}
+
+void loadData11()
+{
+    uint particleIndex = gl_LocalInvocationIndex / 4;
+    for(int z = 0; z < 3; ++z)
+    {
+        if(particleIndex < gridIndex[2][2][z].len)
+        {
+            sharedPosition[gridIndex[2][2][z].localOffset + particleIndex] = position[gridIndex[2][2][z].globalOffset + particleIndex];
+            sharedVelocity[gridIndex[2][2][z].localOffset + particleIndex] = velocity[gridIndex[2][2][z].globalOffset + particleIndex];
+            sharedPressure[gridIndex[2][2][z].localOffset + particleIndex] = pressure[gridIndex[2][2][z].globalOffset + particleIndex];
+            sharedDensity [gridIndex[2][2][z].localOffset + particleIndex] = density [gridIndex[2][2][z].globalOffset + particleIndex];
+        }
+    }
+}
+
+void loadData()
+{
+    switch(gl_LocalInvocationIndex % 4)
+    {
+        case 0:
+            loadData00();
+            break;
+        case 1:
+            loadData01();
+            break;
+        case 2:
+            loadData10();
+            break;
+        case 3:
+            loadData11();
+            break;
+    }
+}
+
+vec3 kernelP(const in vec3 delta)
+{
+    return smoothingLength * smoothingLength * delta;
+}
+
+vec3 kernelV(const in vec3 delta)
+{
+    return smoothingLength * smoothingLength * delta;
+}
+
+uint numThreads;
+uint particleId;
+uint particleSubIndex;
+uint invocationCount;
+
+void updateForce()
+{
+    numThreads = 64 / gridIndex[1][1][1].len;
+    particleId = gl_LocalInvocationIndex / numThreads;
+    invocationCount = numThreads;
+
+    if(particleId >= gridIndex[1][1][1].len - 1)
+    {
+        invocationCount += 64 % gridIndex[1][1][1].len;
+        particleSubIndex = 63 - gl_LocalInvocationIndex;
+    } else {
+        particleSubIndex = gl_LocalInvocationIndex % invocationCount;
+    }
+
+    uint selfIndex = gridIndex[1][1][1].localOffset + particleId;
+	vec3 selfpos = sharedPosition[selfIndex];
+    vec3 selfVelocity = sharedVelocity[selfIndex];
+    float selfPressure = sharedPressure[selfIndex];
+
+    vec3 pressureForce = vec3(0, 0, 0);
+    vec3 viscosityForce = vec3(0, 0, 0);
+	for(uint index = particleSubIndex; index < particleCount; index += invocationCount)
+	{
+        if(index == selfIndex)
+            continue;
+
+		vec3 deltaPos = sharedPosition[index] - selfpos;
+		if(length(deltaPos) < smoothingLength)
+		{
+			pressureForce  -= kernelP(deltaPos) * mass * (sharedPressure[index] + selfPressure) / 2.0 / sharedDensity[index];
+            viscosityForce += kernelV(deltaPos) * mass * (sharedVelocity[index] - selfVelocity)       / sharedDensity[index];
+		}
+	}
+
+    sharedForce[particleId * numThreads + particleSubIndex] =
+        pressureForce +
+        viscosity * viscosityForce;
+}
+
+void calculateGridIndices()
+{
+	uint localOffset = 0;
+
+	for(int x = 0; x < 3; ++x)
+	{
+		for(int y = 0; y < 3; ++y)
+		{
+			for(int z = 0; z < 3; ++z)
+			{
+                if( any(lessThan(gl_WorkGroupID + uvec3(x, y, z), uvec3(1))) || any(lessThan(uvec3(numGridCells + 1), gl_WorkGroupID + uvec3(x, y, z))) )
+                {
+                    gridIndex[x][y][z].len = 0;
+                    continue;
+                }
+
+                uint globalOffset =
+                    gl_WorkGroupID.x * numGridCells * numGridCells +
+                    gl_WorkGroupID.y * numGridCells +
+                    gl_WorkGroupID.z;
+
+				if(globalOffset < numGridCellsCubed - 1)
+                {
+                    gridIndex[x][y][z].globalOffset = gridOffset[globalOffset];
+                    gridIndex[x][y][z].len = min(gridOffset[globalOffset + 1] - gridIndex[x][y][z].globalOffset, 16);
+                    gridIndex[x][y][z].localOffset = localOffset;
+                }
+				else if (globalOffset < numGridCellsCubed)
+                {
+                    gridIndex[x][y][z].globalOffset = gridOffset[globalOffset];
+                    gridIndex[x][y][z].len = 0;//numParticles - gridIndex[x][y][z].globalOffset;
+                    gridIndex[x][y][z].localOffset = localOffset;
+                }
+				else
+                {
+                    gridIndex[x][y][z].len = 0;
+                }
+
+				localOffset += gridIndex[x][y][z].len;
+			}
+		}
+	}
+
+	particleCount = localOffset;
+}
+
+void main()
+{
+	if(gl_LocalInvocationIndex == 0)
+	{
+        particleCount = 0;
+		calculateGridIndices();
+	}
+
+	barrier();
+    memoryBarrierShared();
+
+    if(gridIndex[1][1][1].len == 0)
+        return;
+
+	loadData();
+
+	barrier();
+    memoryBarrierShared();
+
+	updateForce();
+
+    barrier();
+    memoryBarrierShared();
+
+    if(particleSubIndex == 0)
+    {
+        vec3 selfForce = vec3(0,0,0);
+
+        for(uint index = 0; index < invocationCount; ++index)
+        {
+            selfForce += sharedForce[particleId * numThreads + index];
+        }
+
+        force[gridIndex[1][1][1].globalOffset + particleId] = 0.0001 * selfForce + vec3(0, -0.98, 0);
+    }
+}

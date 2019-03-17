@@ -8,7 +8,9 @@
 constexpr const char* indexBufferName = "indexBuffer";
 constexpr const char* gridBufferName = "gridBuffer";
 constexpr const char* positionBufferName = "positionBuffer";
+constexpr const char* velocityBufferName = "velocityBuffer";
 constexpr const char* positionNewBufferName = "positionNewBuffer";
+constexpr const char* velocityNewBufferName = "velocityNewBuffer";
 constexpr const char* superBlockBufferName = "superBlockBuffer";
 
 GridProgram::GridProgram(SimulationState& _state) :
@@ -29,10 +31,6 @@ GridProgram::GridProgram(SimulationState& _state) :
 	state.AttachSuperBlock(finalize, superBlockBufferName);
 
 	state.AttachGrid(scatter, gridBufferName);
-	//state.AttachPosition(scatter, positionBufferName);
-	//state.AttachPositionTemp(scatter, positionNewBufferName);
-	//state.AttachVelocity(scatter);
-	//state.AttachVelocityTemp(scatter);
 	state.AttachParticleIndex(scatter, indexBufferName);
 
 }
@@ -71,8 +69,7 @@ void GridProgram::CompileShaders()
 
 void GridProgram::Run()
 {
-	GLuint zero = 0;
-	glClearNamedBufferData(	state.GridBuffer().GetId(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
+	glClearNamedBufferData(	state.GridBuffer().GetId(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
 	glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
 
 	count.Use();
@@ -101,6 +98,8 @@ void GridProgram::Run()
 	scatter.Use();
 	state.AttachPosition(scatter, positionBufferName);
 	state.AttachPositionBack(scatter, positionNewBufferName);
+	state.AttachVelocity(scatter, velocityBufferName);
+	state.AttachVelocityBack(scatter, velocityNewBufferName);
 	glDispatchCompute(state.ResX() / 4, state.ResY() / 4, state.ResZ() / 4);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 

@@ -20,6 +20,8 @@ private:
 	GL::Buffer superBlockBuffer;
 
 	GL::Buffer pressureBuffer;
+	GL::Buffer densityBufffer;
+	GL::Buffer forceBuffer;
 
 	GL::ShaderStorage positionStorage1;
 	GL::ShaderStorage positionStorage2;
@@ -31,14 +33,8 @@ private:
 	GL::ShaderStorage particleIndexStorage;
 
 	GL::ShaderStorage pressureStorage;
-
-	/*static constexpr GLuint Position = 0;
-	static constexpr GLuint PositionTemp = 1;
-	static constexpr GLuint Velocity = 2;
-	static constexpr GLuint VelocityTemp = 3;
-	static constexpr GLuint Index = 4;
-	static constexpr GLuint Grid = 5;
-	static constexpr GLuint SuperBlock = 6;*/
+	GL::ShaderStorage densityStorage;
+	GL::ShaderStorage forceStorage;
 
 	const unsigned resX;
 	const unsigned resY;
@@ -81,6 +77,30 @@ public:
 		}
 	}
 
+	inline void AttachVelocity(const GL::Program& program, const char* name)
+	{
+		if(firstIsForward)
+		{
+			velocityStorage1.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+		}
+		else
+		{
+			velocityStorage2.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+		}
+	}
+
+	inline void AttachVelocityBack(const GL::Program& program, const char* name)
+	{
+		if(firstIsForward)
+		{
+			velocityStorage2.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+		}
+		else
+		{
+			velocityStorage1.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+		}
+	}
+
 	//TODO velocity same as above
 
 	inline void AttachSuperBlock(const GL::Program& program, const char* name)
@@ -101,6 +121,16 @@ public:
 	inline void AttachPressure(const GL::Program& program, const char* name)
 	{
 		pressureStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+	}
+
+	inline void AttachDensity(const GL::Program& program, const char* name)
+	{
+		densityStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+	}
+
+	inline void AttachForce(const GL::Program& program, const char* name)
+	{
+		forceStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
 	}
 
 	inline unsigned ResX() const

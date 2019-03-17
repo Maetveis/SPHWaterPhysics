@@ -8,7 +8,10 @@ namespace
 {
 
 constexpr const char* positionBufferName = "positionBuffer";
+constexpr const char* densityBufferName = "densityBuffer";
 constexpr const char* pressureBufferName = "pressureBuffer";
+constexpr const char* forceBufferName = "forceBuffer";
+constexpr const char* velocityBufferName = "velocityBuffer";
 constexpr const char* gridBufferName = "gridBuffer";
 
 bool CompileProgram(GL::Program& program, const char* source)
@@ -38,12 +41,19 @@ SimulationProgram::SimulationProgram(SimulationState& _state) :
 	CompileShaders();
 
 	state.AttachPressure(pressure, pressureBufferName);
+	state.AttachDensity(pressure, densityBufferName);
 	state.AttachGrid(pressure, gridBufferName);
+
+	state.AttachPressure(force, pressureBufferName);
+	state.AttachDensity(force, densityBufferName);
+	state.AttachGrid(force, gridBufferName);
+	state.AttachForce(force, forceBufferName);
 }
 
 void SimulationProgram::CompileShaders()
 {
 	CompileProgram(pressure, pressureSource);
+	CompileProgram(force, forceSource);
 }
 
 void SimulationProgram::Run()
@@ -52,10 +62,20 @@ void SimulationProgram::Run()
 	state.AttachPosition(pressure, positionBufferName);
 
 	glUniform1f(0, 0.03);
-	glUniform1f(1, 100000.0);
+	glUniform1f(1, 0.2);
 	glUniform1f(2, 0.0);
 
 	glDispatchCompute(state.GridRes(), state.GridRes(), state.GridRes());
-
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	force.Use();
+	state.AttachPosition(force, positionBufferName);
+	state.AttachVelocity(force, velocityBufferName);
+
+	glUniform1f(0, 0.2);
+
+	glDispatchCompute(state.GridRes(), state.GridRes(), state.GridRes());
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	//SDL_Delay(100);
 }

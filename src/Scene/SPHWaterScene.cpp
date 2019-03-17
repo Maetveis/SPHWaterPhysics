@@ -17,6 +17,8 @@
 
 constexpr const char* positionBufferName = "positionBuffer";
 constexpr const char* pressureBufferName = "pressureBuffer";
+constexpr const char* velocityBufferName = "velocityBuffer";
+constexpr const char* forceBufferName = "forceBuffer";
 constexpr const char* indexBufferName = "indexBuffer";
 
 void SPHWaterScene::OnWindow(SDL_WindowEvent& event)
@@ -93,7 +95,9 @@ bool SPHWaterScene::Begin()
 	glPopDebugGroup();
 
 	state.AttachPressure(renderProgram, pressureBufferName);
-	state.AttachPressure(gravityProgram, pressureBufferName);
+	state.AttachForce(gravityProgram, forceBufferName);
+
+	glEnable(GL_PROGRAM_POINT_SIZE);
 
 	glPopDebugGroup();
 
@@ -132,10 +136,11 @@ void SPHWaterScene::Update(const double delta)
 
 	gravityProgram.Use();
 	state.AttachPosition(gravityProgram, positionBufferName);
+	state.AttachVelocity(gravityProgram, velocityBufferName);
 
 	glUniform1f(dtLocation, static_cast<float>(delta));
 
-	glm::vec3 target = glm::vec3(0.3 * glm::sin( 5 * t), 0.3 * glm::cos(3 * t), 0.3 * glm::sin( 4 * t));
+	glm::vec3 target = glm::vec3(0. * glm::sin( 5 * t), 0. * glm::cos(3 * t), 0. * glm::sin( 4 * t));
 
 	glUniform3fv(targetLocation, 1, reinterpret_cast<GLfloat*>(&target[0]));
 

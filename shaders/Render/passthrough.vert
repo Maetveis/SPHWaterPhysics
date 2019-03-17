@@ -24,6 +24,7 @@ layout(std430) restrict readonly buffer pressureBuffer
 out gl_PerVertex
 {
 	vec4 gl_Position;
+    float gl_PointSize;
 };
 
 out VertexData
@@ -49,5 +50,6 @@ void main()
 
     float pr = pressure[gl_VertexID];
 	out_pos = vec3(pr, 1 - pr, 0);//mix(vec3(1, 1, 1), vec3(0,0,0), vec3(grid.id / 32768.0, (grid.id % 1024) / 1024.0, (grid.id % 32) / 32.0));
+
 	gl_Position = proj * vec4(pos, 1);
 }
