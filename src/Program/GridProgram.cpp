@@ -75,9 +75,11 @@ void GridProgram::Run()
 	count.Use();
 	state.AttachPosition(count, positionBufferName);
 	glUniform1ui(0, state.GridRes());
-	glDispatchCompute(state.ResX() / 4, state.ResY() / 4, state.ResY() / 4);
+	glDispatchCompute(state.ResX() / 4, state.ResY() / 4, state.ResZ() / 4);
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	//glFinish();
 
 	offset.Use();
 	const unsigned l = state.GridRes() / 8;
@@ -85,15 +87,21 @@ void GridProgram::Run()
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+	//glFinish();
+
 	superBlock.Use();
 	//glUniform1ui(0, l * l * l * 64 / 1024);
 	glDispatchCompute(1, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+	//glFinish();
+
 	finalize.Use();
 	glDispatchCompute(state.GridRes() * state.GridRes() * state.GridRes() / 512, 1, 1);
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	//glFinish();
 
 	scatter.Use();
 	state.AttachPosition(scatter, positionBufferName);
@@ -103,6 +111,8 @@ void GridProgram::Run()
 	glDispatchCompute(state.ResX() / 4, state.ResY() / 4, state.ResZ() / 4);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+	//glFinish();
+
 	state.SwapBuffers();
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
 }

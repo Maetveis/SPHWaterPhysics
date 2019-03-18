@@ -27,11 +27,12 @@ const uint numGridCells = 32;
 const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
 const uint numParticles = 0x40000;
 
-const float mass = 1.0;
+const float Mass = 0.02;
+const float Pi = 3.141592653589793;
 
-layout(location = 0) uniform float smoothingLength;
-layout(location = 1) uniform float stiffness;
-layout(location = 2) uniform float restDensity;
+layout(location = 0) uniform float SmoothingLength;
+layout(location = 1) uniform float Stiffness;
+layout(location = 2) uniform float RestDensity;
 
 shared vec3 sharedPosition[27 * 16];
 shared float sharedDensity[16][4];
@@ -119,8 +120,7 @@ void loadPositions()
 float kernel(const in float r2)
 {
 	//Poly6 kernel
-    float base = (smoothingLength * smoothingLength - r2);
-	return 4 * base * base * base / pow(smoothingLength, 1) / 3.14115 ;
+    return  315.f * pow(SmoothingLength * SmoothingLength - r2, 3) / (64.f * Pi * pow(SmoothingLength, 9));
 }
 
 void updatePressure()
@@ -135,9 +135,9 @@ void updatePressure()
 	{
 		vec3 deltaPos = sharedPosition[index] - selfpos;
 		float r2 = dot(deltaPos, deltaPos);
-		if(r2 < smoothingLength * smoothingLength)
+		if(r2 < SmoothingLength * SmoothingLength)
 		{
-			selfDensity += mass * kernel(r2);
+			selfDensity += kernel(r2);
 		}
 	}
     if(particleSubIndex == 3)
@@ -146,9 +146,9 @@ void updatePressure()
         {
             vec3 deltaPos = sharedPosition[index] - selfpos;
             float r2 = dot(deltaPos, deltaPos);
-            if(r2 < smoothingLength * smoothingLength)
+            if(r2 < SmoothingLength * SmoothingLength)
             {
-                selfDensity += mass * kernel(r2);
+                selfDensity += kernel(r2);
             }
         }
     }
@@ -173,9 +173,9 @@ void calculateGridIndices()
                 }
 
                 uint globalOffset =
-                    gl_WorkGroupID.x * numGridCells * numGridCells +
-                    gl_WorkGroupID.y * numGridCells +
-                    gl_WorkGroupID.z;
+                    (gl_WorkGroupID.x + x - 1) * numGridCells * numGridCells +
+                    (gl_WorkGroupID.y + y - 1) * numGridCells +
+                    (gl_WorkGroupID.z + z - 1);
 
 				if(globalOffset < numGridCellsCubed - 1)
                 {
@@ -186,7 +186,7 @@ void calculateGridIndices()
 				else if (globalOffset < numGridCellsCubed)
                 {
                     gridIndex[x][y][z].globalOffset = gridOffset[globalOffset];
-                    gridIndex[x][y][z].len = min(16, numParticles - gridIndex[x][y][z].globalOffset);
+                    gridIndex[x][y][z].len = min(numParticles - gridIndex[x][y][z].globalOffset, 16);
                     gridIndex[x][y][z].localOffset = localOffset;
                 }
 				else
@@ -228,13 +228,13 @@ void main()
 
     if(particleSubIndex == 0 && particleIndex < gridIndex[1][1][1].len)
     {
-        float selfDensity =
-            sharedDensity[particleIndex][0] +
+        float selfDensity = Mass *
+            (sharedDensity[particleIndex][0] +
             sharedDensity[particleIndex][1] +
             sharedDensity[particleIndex][2] +
-            sharedDensity[particleIndex][3];
+            sharedDensity[particleIndex][3]);
 
         density [gridIndex[1][1][1].globalOffset + particleIndex] = selfDensity;
-        pressure[gridIndex[1][1][1].globalOffset + particleIndex] = stiffness * (selfDensity - restDensity);
+        pressure[gridIndex[1][1][1].globalOffset + particleIndex] = max(Stiffness * (selfDensity - RestDensity), 0);
     }
 }

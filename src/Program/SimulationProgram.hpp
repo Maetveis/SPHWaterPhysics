@@ -15,8 +15,8 @@ private:
 
 	void CompileShaders();
 
-	static constexpr const char* pressureSource = "../shaders/Simulation/pressure.comp";
-	static constexpr const char* forceSource = "../shaders/Simulation/force.comp";
+	static constexpr const char* pressureSource = "../shaders/Simulation/new.comp";
+	static constexpr const char* forceSource = "../shaders/Simulation/forcenew.comp";
 public:
 	SimulationProgram(SimulationState& _state);
 

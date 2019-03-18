@@ -17,6 +17,7 @@
 
 constexpr const char* positionBufferName = "positionBuffer";
 constexpr const char* pressureBufferName = "pressureBuffer";
+constexpr const char* densityBufferName  = "densityBuffer";
 constexpr const char* velocityBufferName = "velocityBuffer";
 constexpr const char* forceBufferName = "forceBuffer";
 constexpr const char* indexBufferName = "indexBuffer";
@@ -96,6 +97,7 @@ bool SPHWaterScene::Begin()
 
 	state.AttachPressure(renderProgram, pressureBufferName);
 	state.AttachForce(gravityProgram, forceBufferName);
+	state.AttachDensity(gravityProgram, densityBufferName);
 
 	glEnable(GL_PROGRAM_POINT_SIZE);
 
@@ -164,7 +166,7 @@ void SPHWaterScene::Render()
 
 	glm::mat4 proj =
 		glm::perspective(45.0f, 1280/720.0f, 0.01f, 500.0f) *
-		glm::lookAt(glm::vec3( 0.f,  1.f,  2.f), glm::vec3( 0,  0,  0), glm::vec3( 0,  1,  0)) *
+		glm::lookAt(glm::vec3( 0.f,  0.f,  3.f), glm::vec3( 0,  0,  0), glm::vec3( 0,  1,  0)) *
 		//glm::rotate<float>(t * 0.002, glm::vec3(0.f, 0.f, 1.f)) *
 		//glm::rotate<float>(t * 0.3, glm::vec3(0.f, 1.f, 0.f)) *
 		glm::rotate<float>(t * 0.1, glm::vec3(0.f, 1.f, 0.f));

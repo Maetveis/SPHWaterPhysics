@@ -33,21 +33,23 @@ layout(std430) restrict writeonly buffer forceBuffer
     vec3 force[];
 };
 
-const float viscosity = 1.0;
+const float Viscosity = 0.0;
+const float Mass = 0.02;
+const float Pi = 3.141592653589793;
+
 
 const uint numGridCells = 32;
 const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
 const uint numParticles = 0x40000;
-const float mass = 1.0;
 
-layout(location = 0) uniform float smoothingLength;
+layout(location = 0) uniform float SmoothingLength;
 
 shared vec3 sharedPosition [27 * 16];
 shared vec3 sharedVelocity [27 * 16];
 shared float sharedPressure[27 * 16];
 shared float sharedDensity [27 * 16];
 
-shared vec3 sharedForce[64];
+shared vec3 sharedForce[gl_WorkGroupSize.x];
 
 struct gridCell
 {
@@ -151,15 +153,15 @@ void loadData()
     }
 }
 
-vec3 kernelP(const in vec3 delta)
+/*vec3 kernelP(const in vec3 delta)
 {
-    return smoothingLength * smoothingLength * delta;
+    return 0;
 }
 
 vec3 kernelV(const in vec3 delta)
 {
-    return smoothingLength * smoothingLength * delta;
-}
+    return SmoothingLength * SmoothingLength * delta;
+}*/
 
 uint numThreads;
 uint particleId;
@@ -168,14 +170,14 @@ uint invocationCount;
 
 void updateForce()
 {
-    numThreads = 64 / gridIndex[1][1][1].len;
+    numThreads = gl_WorkGroupSize.x / gridIndex[1][1][1].len;
     particleId = gl_LocalInvocationIndex / numThreads;
     invocationCount = numThreads;
 
     if(particleId >= gridIndex[1][1][1].len - 1)
     {
-        invocationCount += 64 % gridIndex[1][1][1].len;
-        particleSubIndex = 63 - gl_LocalInvocationIndex;
+        invocationCount += gl_WorkGroupSize.x % gridIndex[1][1][1].len;
+        particleSubIndex = gl_WorkGroupSize.x - 1 - gl_LocalInvocationIndex;
     } else {
         particleSubIndex = gl_LocalInvocationIndex % invocationCount;
     }
@@ -193,16 +195,20 @@ void updateForce()
             continue;
 
 		vec3 deltaPos = sharedPosition[index] - selfpos;
-		if(length(deltaPos) < smoothingLength)
+        float r = length(deltaPos);
+		if(r > 0.000000000001 && r < SmoothingLength)
 		{
-			pressureForce  -= kernelP(deltaPos) * mass * (sharedPressure[index] + selfPressure) / 2.0 / sharedDensity[index];
-            viscosityForce += kernelV(deltaPos) * mass * (sharedVelocity[index] - selfVelocity)       / sharedDensity[index];
+			pressureForce -= (sharedPressure[index] + selfPressure) / 2.0 / sharedDensity[index] *
+                -45.f / (Pi * pow(SmoothingLength, 6)) * pow(SmoothingLength - r, 2) * normalize(deltaPos);
+
+            viscosityForce += (sharedVelocity[index] - selfVelocity) / sharedDensity[index] *
+                45.f / (Pi * pow(SmoothingLength, 6)) * (SmoothingLength - r);
 		}
 	}
 
     sharedForce[particleId * numThreads + particleSubIndex] =
         pressureForce +
-        viscosity * viscosityForce;
+        Viscosity * viscosityForce;
 }
 
 void calculateGridIndices()
@@ -222,9 +228,9 @@ void calculateGridIndices()
                 }
 
                 uint globalOffset =
-                    gl_WorkGroupID.x * numGridCells * numGridCells +
-                    gl_WorkGroupID.y * numGridCells +
-                    gl_WorkGroupID.z;
+                    (gl_WorkGroupID.x + x - 1) * numGridCells * numGridCells +
+                    (gl_WorkGroupID.y + y - 1) * numGridCells +
+                    (gl_WorkGroupID.z + z - 1);
 
 				if(globalOffset < numGridCellsCubed - 1)
                 {
@@ -235,7 +241,7 @@ void calculateGridIndices()
 				else if (globalOffset < numGridCellsCubed)
                 {
                     gridIndex[x][y][z].globalOffset = gridOffset[globalOffset];
-                    gridIndex[x][y][z].len = 0;//numParticles - gridIndex[x][y][z].globalOffset;
+                    gridIndex[x][y][z].len = min(numParticles - gridIndex[x][y][z].globalOffset, 16);
                     gridIndex[x][y][z].localOffset = localOffset;
                 }
 				else
@@ -271,7 +277,6 @@ void main()
     memoryBarrierShared();
 
 	updateForce();
-
     barrier();
     memoryBarrierShared();
 
@@ -283,7 +288,8 @@ void main()
         {
             selfForce += sharedForce[particleId * numThreads + index];
         }
+        selfForce *= Mass;
 
-        force[gridIndex[1][1][1].globalOffset + particleId] = 0.0001 * selfForce + vec3(0, -0.98, 0);
+        force[gridIndex[1][1][1].globalOffset + particleId] = selfForce;// + vec3(0, -0.98, 0);
     }
 }

@@ -5,7 +5,7 @@ layout(std430, binding = 0) restrict readonly buffer positionBuffer
     vec3 position[];
 };
 
-/*struct gridIndex
+struct gridIndex
 {
     uint id;
     uint localOffset;
@@ -14,7 +14,7 @@ layout(std430, binding = 0) restrict readonly buffer positionBuffer
 layout(std430) restrict readonly buffer indexBuffer
 {
 	gridIndex particleGridIndex[];
-};*/
+};
 
 layout(std430) restrict readonly buffer pressureBuffer
 {
@@ -29,7 +29,7 @@ out gl_PerVertex
 
 out VertexData
 {
-	vec3 out_pos;
+	float out_pos;
 };
 
 uniform mat4 proj;
@@ -46,10 +46,11 @@ void main()
     position[id] = pos + strength * toTarget * 0.01;*/
 
     vec3 pos = position[gl_VertexID];
-    //gridIndex grid = particleGridIndex[gl_VertexID];
+    gridIndex grid = particleGridIndex[gl_VertexID];
 
     float pr = pressure[gl_VertexID];
-	out_pos = vec3(pr, 1 - pr, 0);//mix(vec3(1, 1, 1), vec3(0,0,0), vec3(grid.id / 32768.0, (grid.id % 1024) / 1024.0, (grid.id % 32) / 32.0));
+	out_pos = pr;//vec3(pr, 1 - pr, 0);//mix(vec3(1, 1, 1), vec3(0,0,0), grid.id / 32768.0);
 
 	gl_Position = proj * vec4(pos, 1);
+    //gl_PointSize = 5 - 2 * gl_Position[3];
 }

@@ -37,7 +37,7 @@ private:
 	SimulationProgram simulation;
 public:
 	SPHWaterScene() :
-		state(64, 64, 64, 32),
+		state(64, 64, 128, 32),
 		grid(state),
 		simulation(state)
 	{
