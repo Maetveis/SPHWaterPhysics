@@ -35,21 +35,21 @@ void Game::Run()
 	Destroy();
 }
 
-void LogGLDebug(GLenum source​, GLenum type​, GLuint id​,
-	GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
+void LogGLDebug(GLenum source, GLenum type, GLuint id,
+	GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
-	switch (severity​) {
+	switch (severity) {
 		case GL_DEBUG_SEVERITY_HIGH:
-			Logger::Error << "Opengl: " << message​ << '\n';
+			Logger::Error << "Opengl: " << message << '\n';
 			break;
 		case GL_DEBUG_SEVERITY_MEDIUM:
-			Logger::Warning << "Opengl: " << message​ << '\n';
+			Logger::Warning << "Opengl: " << message << '\n';
 			break;
 		case GL_DEBUG_SEVERITY_LOW:
-			Logger::Warning << "Opengl low warning: " << message​ << '\n';
+			Logger::Warning << "Opengl low warning: " << message << '\n';
 			break;
 		case GL_DEBUG_SEVERITY_NOTIFICATION:
-			Logger::Info << "Opengl notification: " << message​ << '\n';
+			Logger::Info << "Opengl notification: " << message << '\n';
 			break;
 	}
 }
