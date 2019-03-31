@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 #include <type_traits>
+#include <cstdlib>
+#include <ctime>
 
 class aiMesh;
 class Mesh3D;
