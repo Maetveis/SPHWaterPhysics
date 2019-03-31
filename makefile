@@ -12,8 +12,8 @@ MKDIR := mkdir
 ifeq ($(OS),Windows_NT)
   CXX := g++
 	OUT := bin/main.exe
-	LDLIBS += -lmingw32 -lopengl32 -lglew32
-	#LDFLAGS += -mwindows
+	LDLIBS := -lmingw32 $(LDLIBS) -lopengl32 -lglew32
+	LDFLAGS += -mwindows
 else
 	OUT := bin/main.run
     INCL :=
