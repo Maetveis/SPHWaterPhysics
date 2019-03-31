@@ -29,7 +29,7 @@ out gl_PerVertex
 
 out VertexData
 {
-	float out_pos;
+	vec3 out_pos;
 };
 
 uniform mat4 proj;
@@ -49,7 +49,8 @@ void main()
     gridIndex grid = particleGridIndex[gl_VertexID];
 
     float pr = pressure[gl_VertexID];
-	out_pos = pr;//vec3(pr, 1 - pr, 0);//mix(vec3(1, 1, 1), vec3(0,0,0), grid.id / 32768.0);
+	//out_pos = /*(pos + 1) / 2;//*/pr;//vec3(pr, 1 - pr, 0);//mix(vec3(1, 1, 1), vec3(0,0,0), vec3(grid.id / 32768.0));
+    out_pos = vec3(pr, 1 - pr, 0);
 
 	gl_Position = proj * vec4(pos, 1);
     //gl_PointSize = 5 - 2 * gl_Position[3];

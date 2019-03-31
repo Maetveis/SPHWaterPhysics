@@ -37,10 +37,10 @@ const uint numGridCells = 32;
 const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
 const uint numParticles = 0x40000;
 
-const float Mass = 0.04;
+const float Mass = 0.2;
 const float Pi = 3.141592653589793;
 
-const float Viscosity = 20;
+const float Viscosity = 1;//20000;
 
 layout(location = 0) uniform float SmoothingLength;
 
@@ -72,6 +72,11 @@ uint particleSubIndex;
 void calculateGridIndices()
 {
     uvec3 offset = uvec3(gl_LocalInvocationIndex / 9, (gl_LocalInvocationIndex % 9) / 3, gl_LocalInvocationIndex % 3);
+
+    //bvec3 less = lessThan(gl_WorkGroupID + offset, uvec3(1, 1, 1));
+    //bvec3 more = lessThanEqual(uvec3(numGridCells + 1), gl_WorkGroupID + offset);
+    //offset += 2 * uint(less);
+    //offset -= 2 * uint(more);
 
     if( any(lessThan(gl_WorkGroupID + offset, uvec3(1, 1, 1))) || any(lessThanEqual(uvec3(numGridCells + 1), gl_WorkGroupID + offset)))
     {
@@ -106,21 +111,18 @@ void calculateGridIndices()
 void loadSelfData()
 {
     numThreadsBase = gl_WorkGroupSize.x / gridIndex[13].len;
+    numThreads = numThreadsBase;
 
     if(gl_LocalInvocationIndex < numThreadsBase * gridIndex[13].len)
     {
         particleIndex = gl_LocalInvocationIndex / numThreadsBase;
         particleSubIndex = gl_LocalInvocationIndex % numThreadsBase;
-
-        numThreads = numThreadsBase;
     } else {
-        particleIndex = gl_LocalInvocationIndex % numThreadsBase;
+        particleIndex = gl_LocalInvocationIndex % gridIndex[13].len;
         particleSubIndex = numThreads;
-
-        numThreads = numThreadsBase + 1;
     }
 
-    if(gl_LocalInvocationIndex < numThreadsBase * (gl_WorkGroupSize.x % gridIndex[13].len))
+    if(particleIndex < gl_WorkGroupSize.x % gridIndex[13].len)
         ++numThreads;
 
     selfPosition = position[gridIndex[13].globalOffset + particleIndex];
@@ -140,6 +142,9 @@ void loadSelfData()
 
 void processGrid(uint grid)
 {
+    if(particleIndex > gridIndex[13].len)
+        return;
+
 	vec3 pressureForce = vec3(0, 0, 0);
     vec3 viscosityForce = vec3(0, 0, 0);
 	for(uint index = particleSubIndex; index < gridIndex[grid].len; index += numThreads)
@@ -149,14 +154,14 @@ void processGrid(uint grid)
 
 		vec3 deltaPos = sharedPosition[index] - selfPosition;
         float r = length(deltaPos);
-		if(r > 0.1 && r < SmoothingLength)
+		if(r > 0.00000000000000000000001 && r < SmoothingLength)
 		{
-			pressureForce -= (sharedPressure[index] + selfPressure) / 2.0 / sharedDensity[index] *
+			pressureForce -= Mass * (sharedPressure[index] + selfPressure) / 2.0 / sharedDensity[index] *
                 -45.f / (Pi * pow(SmoothingLength, 6)) * pow(SmoothingLength - r, 2) * normalize(deltaPos);
 
 			//pressureForce -= 0.0000000000000000000001 * (sharedPressure[index] + selfPressure);
 
-            viscosityForce += (sharedVelocity[index] - selfVelocity) / sharedDensity[index] *
+            viscosityForce += Mass * (sharedVelocity[index] - selfVelocity) / sharedDensity[index] *
                 45.f / (Pi * pow(SmoothingLength, 6)) * (SmoothingLength - r);
 		}
 	}
@@ -230,8 +235,6 @@ void main()
         {
             selfForce += sharedForce[gridIndex[13].len + particleIndex];
         }
-
-        selfForce *= Mass;
 
 		force[gridIndex[13].globalOffset + particleIndex] = selfForce;// + vec3(0, -0.98, 0);
 	}

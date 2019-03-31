@@ -22,7 +22,7 @@ layout(std430) restrict readonly buffer densityBuffer
     float density[];
 };
 
-const float Damping = 0.7;
+const float Damping = 0.3;
 
 uniform float dt;
 uniform vec3 target;
@@ -42,8 +42,10 @@ void main()
     //float strength = min(l * l, 10.0);
 
     //vec3 vel = velocity[id] + (force[id] - force[id]); //+ dt * ((force[id] - force[id]) * (1 / density[id]) - (1 / density[id]) /* + vec3(0, -.98, 0)*/);
-    vec3 vel = velocity[id] + dt * (force[id] / density[id] + vec3(0, -0.98, 0));
-    pos += vel * dt;
+    vec3 vel = velocity[id] + 0.1 * dt * (force[id] / density[id] + vec3(0, -9.800, 0));
+    pos += vel * 0.1 * dt;
+
+
 
     if(pos[0] < -1.0)
     {
@@ -63,7 +65,7 @@ void main()
     }
     if(pos[1] > 1.0)
     {
-        pos[1] =  1.0 + Damping - Damping * pos[1];
+        pos[1] =  1.0 + 0.2 * Damping - 0.2 * Damping * pos[1];
         vel[1] = -Damping * vel[1];
     }
 
@@ -78,6 +80,6 @@ void main()
         vel[2] = -Damping * vel[2];
     }
 
-    velocity[id] = clamp(vel, -2, 2);
-    position[id] = clamp(pos, -1, 1);
+    velocity[id] = vel;
+    position[id] = pos;
 }

@@ -49,7 +49,7 @@ std::vector<SimulationState::alignedVector> SimulationState::MakeGrid()
 
 	data.reserve(resX * resY * resZ);
 
-	const float multX = 2. / resX;
+	const float multX = 1. / resX;
 	const float multY = 2. / resY;
 	const float multZ = 2. / resZ;
 
@@ -59,7 +59,7 @@ std::vector<SimulationState::alignedVector> SimulationState::MakeGrid()
 		{
 			for(size_t z = 0; z < resZ; ++z)
 			{
-				data.emplace_back(x * multX - 1.0, y * multY - 1.0, z * multZ - 1.0);
+				data.emplace_back(x * multX/* - 1.0*/, y * multY - 1.0, z * multZ - 1.0);
 			}
 		}
 	}
