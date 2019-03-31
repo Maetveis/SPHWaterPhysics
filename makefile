@@ -10,6 +10,7 @@ LDLIBS := -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lassimp
 MKDIR := mkdir
 
 ifeq ($(OS),Windows_NT)
+  CXX := g++
 	OUT := bin/main.exe
 	LDLIBS += -lmingw32 -lopengl32 -lglew32
 	#LDFLAGS += -mwindows
