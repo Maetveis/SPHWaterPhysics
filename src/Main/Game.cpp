@@ -185,7 +185,7 @@ void Game::DelayFrameTime(const unsigned frameStart, const unsigned short target
 	int delay = targetLength - frameLenght;
 	if(delay > 0)
 	{
-	//	SDL_Delay(delay);
+		SDL_Delay(delay);
 	}
 }
 

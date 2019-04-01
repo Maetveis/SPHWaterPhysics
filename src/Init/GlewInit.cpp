@@ -32,7 +32,7 @@ bool GlewInit::InitContext()
 	// SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
 	// V-sync on
-	//SDL_GL_SetSwapInterval(1);
+	SDL_GL_SetSwapInterval(1);
 
 	return true;
 }

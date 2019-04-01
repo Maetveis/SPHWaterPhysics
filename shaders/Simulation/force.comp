@@ -33,7 +33,7 @@ layout(std430) restrict writeonly buffer forceBuffer
     vec3 force[];
 };
 
-const float Viscosity = 0.0;
+const float Viscosity = 2;
 const float Mass = 0.02;
 const float Pi = 3.141592653589793;
 
