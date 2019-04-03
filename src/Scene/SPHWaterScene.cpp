@@ -121,38 +121,32 @@ void SPHWaterScene::Pause()
 
 }
 
-static double t = 0;
-
 constexpr size_t groupX = 4;
 constexpr size_t groupY = 4;
 constexpr size_t groupZ = 4;
 
 void SPHWaterScene::Update(const double delta)
 {
-		timeRemainder += delta;
+	timeRemainder += delta;
+	time += delta;
 
-		while(timeRemainder >= stepTime)
-		{
-			timeRemainder -= stepTime;
-			t += stepTime;
+	while(timeRemainder >= stepTime)
+	{
+		timeRemainder -= stepTime;
 
-			grid.Run();
-			simulation.Run();
+		grid.Run();
+		simulation.Run();
 
-			gravityProgram.Use();
-			state.AttachPosition(gravityProgram, positionBufferName);
-			state.AttachVelocity(gravityProgram, velocityBufferName);
+		gravityProgram.Use();
+		state.AttachPosition(gravityProgram, positionBufferName);
+		state.AttachVelocity(gravityProgram, velocityBufferName);
 
-			glUniform1f(dtLocation, stepTime);
+		glUniform1f(dtLocation, stepTime);
 
-			glm::vec3 target = glm::vec3(0. * glm::sin( 5 * t), 0. * glm::cos(3 * t), 0. * glm::sin( 4 * t));
+		glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
 
-			glUniform3fv(targetLocation, 1, reinterpret_cast<GLfloat*>(&target[0]));
-
-			glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
-
-			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-		}
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	}
 }
 
  void SPHWaterScene::PrepareRender()
@@ -176,7 +170,7 @@ void SPHWaterScene::Render()
 		glm::lookAt(glm::vec3( 0.f,  0.f,  3.f), glm::vec3( 0,  0,  0), glm::vec3( 0,  1,  0)) *
 		//glm::rotate<float>(t * 0.002, glm::vec3(0.f, 0.f, 1.f)) *
 		//glm::rotate<float>(t * 0.3, glm::vec3(0.f, 1.f, 0.f)) *
-		glm::rotate<float>(t * 0.1, glm::vec3(0.f, 1.f, 0.f));
+		glm::rotate<float>(time * 0.1, glm::vec3(0.f, 1.f, 0.f));
 
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&proj[0][0]));
 

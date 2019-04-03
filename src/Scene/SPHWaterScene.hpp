@@ -36,6 +36,7 @@ private:
 	GridProgram grid;
 	SimulationProgram simulation;
 
+	float time;
 	float timeRemainder;
 
 	static constexpr float stepTime = 0.016666666666;
@@ -44,6 +45,7 @@ public:
 		state(64, 64, 64, 32),
 		grid(state),
 		simulation(state),
+		time(0),
 		timeRemainder(0)
 	{
 	}
