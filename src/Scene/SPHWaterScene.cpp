@@ -129,26 +129,30 @@ constexpr size_t groupZ = 4;
 
 void SPHWaterScene::Update(const double delta)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		timeRemainder += delta;
 
-	grid.Run();
-	simulation.Run();
+		while(timeRemainder >= stepTime)
+		{
+			timeRemainder -= stepTime;
+			t += stepTime;
 
-	t += delta;
+			grid.Run();
+			simulation.Run();
 
-	gravityProgram.Use();
-	state.AttachPosition(gravityProgram, positionBufferName);
-	state.AttachVelocity(gravityProgram, velocityBufferName);
+			gravityProgram.Use();
+			state.AttachPosition(gravityProgram, positionBufferName);
+			state.AttachVelocity(gravityProgram, velocityBufferName);
 
-	glUniform1f(dtLocation, static_cast<float>(delta));
+			glUniform1f(dtLocation, stepTime);
 
-	glm::vec3 target = glm::vec3(0. * glm::sin( 5 * t), 0. * glm::cos(3 * t), 0. * glm::sin( 4 * t));
+			glm::vec3 target = glm::vec3(0. * glm::sin( 5 * t), 0. * glm::cos(3 * t), 0. * glm::sin( 4 * t));
 
-	glUniform3fv(targetLocation, 1, reinterpret_cast<GLfloat*>(&target[0]));
+			glUniform3fv(targetLocation, 1, reinterpret_cast<GLfloat*>(&target[0]));
 
-	glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
+			glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
 
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		}
 }
 
  void SPHWaterScene::PrepareRender()
@@ -157,6 +161,9 @@ void SPHWaterScene::Update(const double delta)
 
 void SPHWaterScene::Render()
 {
+	//Clear
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	//Render
 
 	renderProgram.Use();

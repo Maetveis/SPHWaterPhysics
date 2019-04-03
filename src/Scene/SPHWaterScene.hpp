@@ -35,11 +35,16 @@ private:
 	SimulationState state;
 	GridProgram grid;
 	SimulationProgram simulation;
+
+	float timeRemainder;
+
+	static constexpr float stepTime = 0.016666666666;
 public:
 	SPHWaterScene() :
 		state(64, 64, 64, 32),
 		grid(state),
-		simulation(state)
+		simulation(state),
+		timeRemainder(0)
 	{
 	}
 
