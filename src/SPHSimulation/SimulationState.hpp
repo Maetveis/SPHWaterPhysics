@@ -23,6 +23,8 @@ private:
 	GL::Buffer densityBufffer;
 	GL::Buffer forceBuffer;
 
+	GL::Buffer edgeBuffer;
+
 	GL::ShaderStorage positionStorage1;
 	GL::ShaderStorage positionStorage2;
 	GL::ShaderStorage velocityStorage1;
@@ -35,6 +37,8 @@ private:
 	GL::ShaderStorage pressureStorage;
 	GL::ShaderStorage densityStorage;
 	GL::ShaderStorage forceStorage;
+
+	GL::ShaderStorage edgeStorage;
 
 	const unsigned resX;
 	const unsigned resY;
@@ -131,6 +135,11 @@ public:
 	inline void AttachForce(const GL::Program& program, const char* name)
 	{
 		forceStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+	}
+
+	inline void AttachEdge(const GL::Program& program, const char* name)
+	{
+		edgeStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
 	}
 
 	inline unsigned ResX() const

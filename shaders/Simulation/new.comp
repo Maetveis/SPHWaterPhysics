@@ -23,6 +23,12 @@ layout(std430) restrict readonly buffer gridBuffer
 	uint gridOffset[];
 };
 
+layout(std430) restrict writeonly buffer edgeBuffer
+{
+    uint count;
+    vec3 position[];
+} edgeParticles;
+
 const uint numGridCells = 32;
 const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
 const uint numParticles = 0x40000;
@@ -30,12 +36,22 @@ const uint numParticles = 0x40000;
 const float Mass = 0.2;
 const float Pi = 3.141592653589793;
 
+const float EdgeThreshHold = 0.01;
+
 layout(location = 0) uniform float SmoothingLength;
 layout(location = 1) uniform float Stiffness;
 layout(location = 2) uniform float RestDensity;
 
 shared vec3 sharedPosition[64];
 shared float sharedDensity[64];
+
+struct Sum
+{
+    uint count;
+    vec3 sum;
+};
+
+shared Sum sharedCenter[64];
 
 struct gridCell
 {
@@ -110,6 +126,7 @@ void loadSelfData()
     }
 
     sharedDensity[gl_LocalInvocationIndex] = 0;
+    sharedCenter[gl_LocalInvocationIndex] = Sum(0, vec3(0));
 }
 
 void processGrid(uint grid)
@@ -121,6 +138,8 @@ void processGrid(uint grid)
 		float r = length(deltaPos);
 		if(r < SmoothingLength)
 		{
+            ++sharedCenter[gl_LocalInvocationIndex].count;
+            sharedCenter[gl_LocalInvocationIndex].sum += deltaPos;
 			selfDensity += 315.f * pow(SmoothingLength * SmoothingLength - r * r, 3) / (64.f * Pi * pow(SmoothingLength, 9));
 		}
     }
@@ -170,19 +189,30 @@ void main()
     if(gridIndex[13].len > 0 && particleSubIndex == 0)
     {
         float selfDensity = 0;
+        Sum midPoint;
         for(uint index = 0; index < numThreadsBase; ++index)
         {
             selfDensity += sharedDensity[particleIndex * numThreadsBase + index];
+            midPoint.sum += sharedCenter[particleIndex * numThreadsBase + index].sum;
+            midPoint.count += sharedCenter[particleIndex * numThreadsBase + index].count;
         }
 
         if(numThreads > numThreadsBase)
         {
             selfDensity += sharedDensity[gridIndex[13].len + particleIndex];
+            midPoint.sum += sharedCenter[gridIndex[13].len + particleIndex].sum;
+            midPoint.count += sharedCenter[gridIndex[13].len + particleIndex].count;
         }
 
         selfDensity *= Mass;
 
         density [gridIndex[13].globalOffset + particleIndex] = max(selfDensity, 0.1);
         pressure[gridIndex[13].globalOffset + particleIndex] = max(Stiffness * (selfDensity - RestDensity), 0.0);
+
+        if(midPoint.count > 0 && length(midPoint.sum / midPoint.count) > EdgeThreshHold)
+        {
+            uint offset = atomicAdd(edgeParticles.count, 1);
+            edgeParticles.position[offset] = selfPosition;
+        }
     }
 }

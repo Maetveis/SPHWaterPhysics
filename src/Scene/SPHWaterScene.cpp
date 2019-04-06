@@ -128,11 +128,11 @@ constexpr size_t groupZ = 4;
 void SPHWaterScene::Update(const double delta)
 {
 	timeRemainder += delta;
-	time += delta;
 
-	while(timeRemainder >= stepTime)
+	if(timeRemainder >= stepTime)
 	{
-		timeRemainder -= stepTime;
+		time += stepTime;
+		timeRemainder = 0;
 
 		grid.Run();
 		simulation.Run();

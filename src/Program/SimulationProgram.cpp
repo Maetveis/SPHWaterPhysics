@@ -13,6 +13,7 @@ constexpr const char* pressureBufferName = "pressureBuffer";
 constexpr const char* forceBufferName = "forceBuffer";
 constexpr const char* velocityBufferName = "velocityBuffer";
 constexpr const char* gridBufferName = "gridBuffer";
+constexpr const char* edgeBufferName = "edgeBuffer";
 
 bool CompileProgram(GL::Program& program, const char* source)
 {
@@ -43,6 +44,7 @@ SimulationProgram::SimulationProgram(SimulationState& _state) :
 	state.AttachPressure(pressure, pressureBufferName);
 	state.AttachDensity(pressure, densityBufferName);
 	state.AttachGrid(pressure, gridBufferName);
+	state.AttachEdge(pressure, edgeBufferName);
 
 	state.AttachPressure(force, pressureBufferName);
 	state.AttachDensity(force, densityBufferName);

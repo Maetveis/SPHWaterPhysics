@@ -26,6 +26,8 @@ SimulationState::SimulationState(unsigned _resX, unsigned _resY, unsigned _resZ,
 	densityStorage.AttachBuffer(densityBufffer);
 
 	forceStorage.AttachBuffer(forceBuffer);
+
+	edgeStorage.AttachBuffer(edgeBuffer);
 }
 
 struct alignas(16) SimulationState::alignedVector
@@ -87,6 +89,8 @@ void SimulationState::InitBuffers()
 
 	pressureBuffer.InitEmpty(data.size() * sizeof(GLfloat), GL_DYNAMIC_COPY);
 	densityBufffer.InitEmpty(data.size() * sizeof(GLfloat), GL_DYNAMIC_COPY);
+
+	edgeBuffer.InitEmpty(100000 * sizeof(data[0]), GL_DYNAMIC_COPY);
 
 	//Note to self: forgeting syncronization screws things up so dont do it
 	glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
