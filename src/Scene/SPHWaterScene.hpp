@@ -13,6 +13,7 @@
 
 #include "../Program/GridProgram.hpp"
 #include "../Program/SimulationProgram.hpp"
+#include "../Program/SPHRender.hpp"
 
 #include <GL/glew.h>
 
@@ -20,21 +21,14 @@ class SPHWaterScene : public Scene
 {
 private:
 	GL::Program gravityProgram;
-	GL::Program renderProgram;
-	//GL::Buffer storageBuffer;
-	//GL::ShaderStorage storage;
-
-	GL::VertexArray va;
-	GL::VertexArrayBinding vb;
 
 	GLint targetLocation;
 	GLint dtLocation;
 
-	GLint projLocation;
-
 	SimulationState state;
 	GridProgram grid;
 	SimulationProgram simulation;
+	SPHRender render;
 
 	float time;
 	float timeRemainder;
@@ -45,6 +39,7 @@ public:
 		state(64, 64, 64, 32),
 		grid(state),
 		simulation(state),
+		render(state),
 		time(0),
 		timeRemainder(0)
 	{

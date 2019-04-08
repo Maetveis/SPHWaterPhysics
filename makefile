@@ -28,7 +28,7 @@ SRCS := DataStore/GPUAllocator.cpp \
 	Init/SDLInit.cpp Init/GlewInit.cpp \
 	Manager/WindowManager.cpp Manager/SceneManager.cpp \
 	Helper/Program.cpp Helper/UniformBuffer.cpp Helper/Shader.cpp Helper/Utility.cpp Helper/ShaderStorage.cpp \
-	Program/Mesh3DColor.cpp Program/GridProgram.cpp Program/SimulationProgram.cpp \
+	Program/Mesh3DColor.cpp Program/GridProgram.cpp Program/SimulationProgram.cpp Program/SPHRender.cpp \
 	SPHSimulation/SimulationState.cpp
 
 
