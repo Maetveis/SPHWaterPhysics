@@ -75,6 +75,9 @@ bool SPHWaterScene::Begin()
 	state.AttachDensity(gravityProgram, densityBufferName);
 
 	glEnable(GL_PROGRAM_POINT_SIZE);
+	
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPopDebugGroup();
 
@@ -99,6 +102,8 @@ void SPHWaterScene::Pause()
 constexpr size_t groupX = 4;
 constexpr size_t groupY = 4;
 constexpr size_t groupZ = 4;
+
+static bool asd = true;
 
 void SPHWaterScene::Update(const double delta)
 {

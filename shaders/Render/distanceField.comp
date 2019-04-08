@@ -12,10 +12,10 @@ layout(r32i, location = 0) uniform restrict iimage3D distanceField;
 
 const uint distFieldSize = 64;
 
-const float MaxRadius = 0.1 * distFieldSize;
-const float MinRadius = 0.05 * distFieldSize;
+const float MaxRadius = 3.0;//0.1 * distFieldSize;
+const float MinRadius = 0.2;//0.05 * distFieldSize;
 
-const int boxSize = int(ceil(distFieldSize * MaxRadius / 2.0));
+const int boxSize = 3;//int(ceil(distFieldSize * MaxRadius / 2.0));
 
 void main()
 {
@@ -28,7 +28,7 @@ void main()
 	if(id < edgeParticles.count)
 	{
 		vec3 pos = (edgeParticles.position[id] + 1.0) * distFieldSize / 2.0;
-		uvec3 center = uvec3(pos);
+		vec3 center = vec3(pos);
 		for(int x = -1 * boxSize; x < boxSize; ++x)
 		{
 			if(center.x + x < 0 || center.x + x >= distFieldSize)
@@ -44,10 +44,10 @@ void main()
 					if(center.z + z < 0 || center.z + z >= distFieldSize)
 						continue;
 
-					float dist = distance(pos, center + uvec3(x, y, z));
+					float dist = distance(pos, center + vec3(x, y, z));
 					if(dist >= MinRadius && dist <= MaxRadius)
 					{
-						imageAtomicMin(distanceField, ivec3(center + uvec3(x, y, z)), int(dist * 327670));
+						imageAtomicMin(distanceField, ivec3(center + vec3(x, y, z)), int(dist * 10000));
 					}
 				}
 			}
