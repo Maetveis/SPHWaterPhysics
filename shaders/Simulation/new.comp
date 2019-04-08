@@ -23,7 +23,7 @@ layout(std430) restrict readonly buffer gridBuffer
 	uint gridOffset[];
 };
 
-layout(std430) restrict writeonly buffer edgeBuffer
+layout(std430) restrict buffer edgeBuffer
 {
     uint count;
     vec3 position[];
@@ -36,7 +36,7 @@ const uint numParticles = 0x40000;
 const float Mass = 0.2;
 const float Pi = 3.141592653589793;
 
-const float EdgeThreshHold = 0.01;
+const float EdgeThreshHold = 0.007;
 
 layout(location = 0) uniform float SmoothingLength;
 layout(location = 1) uniform float Stiffness;
@@ -209,7 +209,7 @@ void main()
         density [gridIndex[13].globalOffset + particleIndex] = max(selfDensity, 0.1);
         pressure[gridIndex[13].globalOffset + particleIndex] = max(Stiffness * (selfDensity - RestDensity), 0.0);
 
-        if(midPoint.count > 0 && length(midPoint.sum / midPoint.count) > EdgeThreshHold)
+        if(midPoint.count > 16 && length(midPoint.sum / midPoint.count) > EdgeThreshHold)
         {
             uint offset = atomicAdd(edgeParticles.count, 1);
             edgeParticles.position[offset] = selfPosition;

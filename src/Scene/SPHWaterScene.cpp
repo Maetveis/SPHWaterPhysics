@@ -7,6 +7,7 @@
 #include "../Program/GridProgram.hpp"
 
 #include <vector>
+#include <cmath>
 #include <glm/vec3.hpp>
 
 #include <GL/glew.h>
@@ -15,12 +16,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform2.hpp>
 
-constexpr const char* positionBufferName = "positionBuffer";
-constexpr const char* pressureBufferName = "pressureBuffer";
-constexpr const char* densityBufferName  = "densityBuffer";
-constexpr const char* velocityBufferName = "velocityBuffer";
-constexpr const char* forceBufferName = "forceBuffer";
-constexpr const char* indexBufferName = "indexBuffer";
+static constexpr const char* positionBufferName = "positionBuffer";
+//static constexpr const char* pressureBufferName = "pressureBuffer";
+static constexpr const char* densityBufferName  = "densityBuffer";
+static constexpr const char* velocityBufferName = "velocityBuffer";
+static constexpr const char* forceBufferName = "forceBuffer";
+//static constexpr const char* indexBufferName = "indexBuffer";
+//static constexpr const char* edgeBuffername = "edgeBuffer";
+
+static constexpr const unsigned DtLocation = 0;
 
 void SPHWaterScene::OnWindow(SDL_WindowEvent& event)
 {
@@ -132,7 +136,7 @@ void SPHWaterScene::Update(const double delta)
 	if(timeRemainder >= stepTime)
 	{
 		time += stepTime;
-		timeRemainder = 0;
+		timeRemainder = std::fmod(timeRemainder, stepTime);
 
 		grid.Run();
 		simulation.Run();
@@ -141,7 +145,7 @@ void SPHWaterScene::Update(const double delta)
 		state.AttachPosition(gravityProgram, positionBufferName);
 		state.AttachVelocity(gravityProgram, velocityBufferName);
 
-		glUniform1f(dtLocation, stepTime);
+		glUniform1f(DtLocation, stepTime);
 
 		glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
 

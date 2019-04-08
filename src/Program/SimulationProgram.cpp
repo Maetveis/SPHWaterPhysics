@@ -15,6 +15,9 @@ constexpr const char* velocityBufferName = "velocityBuffer";
 constexpr const char* gridBufferName = "gridBuffer";
 constexpr const char* edgeBufferName = "edgeBuffer";
 
+constexpr const char* pressureSource = "../shaders/Simulation/new.comp";
+constexpr const char* forceSource = "../shaders/Simulation/forcenew.comp";
+
 bool CompileProgram(GL::Program& program, const char* source)
 {
 	GL::Shader shader(GL_COMPUTE_SHADER);
@@ -60,6 +63,8 @@ void SimulationProgram::CompileShaders()
 
 void SimulationProgram::Run()
 {
+	state.ResetEdgeCount();
+
 	pressure.Use();
 	state.AttachPosition(pressure, positionBufferName);
 
