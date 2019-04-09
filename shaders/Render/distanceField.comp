@@ -8,14 +8,14 @@ layout(std430) restrict buffer edgeBuffer
     vec3 position[];
 } edgeParticles;
 
-layout(r32i, location = 0) uniform restrict iimage3D distanceField;
+layout(r32f, location = 0) uniform restrict image3D distanceField;
 
 const uint distFieldSize = 64;
 
-const float MaxRadius = 3.0;//0.1 * distFieldSize;
+const float MaxRadius = 5.0;//0.1 * distFieldSize;
 const float MinRadius = 0.2;//0.05 * distFieldSize;
 
-const int boxSize = 3;//int(ceil(distFieldSize * MaxRadius / 2.0));
+const int boxSize = 5;//int(ceil(distFieldSize * MaxRadius / 2.0));
 
 void main()
 {
@@ -47,7 +47,10 @@ void main()
 					float dist = distance(pos, center + vec3(x, y, z));
 					if(dist >= MinRadius && dist <= MaxRadius)
 					{
-						imageAtomicMin(distanceField, ivec3(center + vec3(x, y, z)), int(dist * 10000));
+						//imageAtomicMin(distanceField, ivec3(center + ivec3(x, y, z)), int(dist * 10000));
+                        float prev = imageLoad(distanceField, ivec3(center + ivec3(x, y, z))).r;
+                        if(dist < prev)
+                            imageStore(distanceField, ivec3(center + ivec3(x, y, z)), vec4(dist));
 					}
 				}
 			}

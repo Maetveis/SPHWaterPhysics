@@ -31,7 +31,14 @@ SPHRender::SPHRender(SimulationState& _state) :
 	state.AttachEdge(distanceFieldProgram, EdgeBufferName);
 	state.AttachEdge(raycastProgram, EdgeBufferName);
 
-	glTextureStorage3D(distanceFieldTexture.GetId(), 1, GL_R32I, 64, 64, 64);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_3D, distanceFieldTexture.GetId());
+
+	glTextureStorage3D(distanceFieldTexture.GetId(), 1, GL_R32F, 64, 64, 64);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 static bool CompileProgram(GL::Program& program, const char* source)
@@ -67,13 +74,13 @@ void SPHRender::Render(float time)
 {
 	unsigned edgeCount = state.GetEdgeCount();
 
-	short max = 32767;
-	glClearTexImage(distanceFieldTexture.GetId(), 0, GL_RED_INTEGER, GL_INT, &max);
+	float max = 120.0;
+	glClearTexImage(distanceFieldTexture.GetId(), 0, GL_RED, GL_FLOAT, &max);
 	glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 	distanceFieldProgram.Use();
 
-	glBindImageTexture(DistanceTextureUnit, distanceFieldTexture.GetId(), 0, true, 0, GL_READ_WRITE, GL_R32I);
+	glBindImageTexture(DistanceTextureUnit, distanceFieldTexture.GetId(), 0, true, 0, GL_READ_WRITE, GL_R32F);
 
 	glUniform1i(0, DistanceTextureUnit);
 	glDispatchCompute(edgeCount / 64 + 1, 1, 1);
@@ -85,7 +92,8 @@ void SPHRender::Render(float time)
 	raycastProgram.Use();
 	va.Bind();
 
-	distanceFieldTexture.Bind(1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_3D, distanceFieldTexture.GetId());
 
 	glBindTextureUnit(1, distanceFieldTexture.GetId());
 
@@ -102,8 +110,9 @@ void SPHRender::Render(float time)
 
 	glUniformMatrix4fv(WorldLocation, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&world[0][0]));
 
-	glBindImageTexture(DistanceTextureUnit, distanceFieldTexture.GetId(), 0, true, 0, GL_READ_WRITE, GL_R32I);
-	glUniform1i(3, DistanceTextureUnit);
+	//texture unit 1
+	glUniform1i(3, 1);
+
 	glm::vec3 eye = world * glm::vec4(0.0, 0.0, 2.0, 1.0);
 	glUniform3fv(2, 1, reinterpret_cast<GLfloat*>(&eye[0]));
 

@@ -7,29 +7,37 @@ in FragmentData
 
 layout(location = 0) out vec4 outColor;
 
-//layout(location = 3) uniform isampler3D distanceField;
-
-layout(r32i, location = 3) uniform restrict iimage3D distanceField;
+layout(location = 3) uniform sampler3D distanceText;
 
 layout(location = 2) uniform vec3 Eye;
 
 const float SampleStep = 0.005;
 
-vec3 shadeFrom(vec3 pos, vec3 norm)
+vec3 getNorm(vec3 pos)
 {
-	vec3 Kd = vec3(0, 0.807, 0.819);
-	vec3 Ks = vec3(0, 0.907, 0.619);
-	vec3 color = vec3(1, 1, 1);
-	float sE = 8.0;
+	 vec3 norm;
+	 norm.x = texture(distanceText, pos + vec3(1, 0, 0) / 64).r - texture(distanceText, pos - vec3(1, 0, 0) / 64).r;
+	 norm.y = texture(distanceText, pos + vec3(0, 1, 0) / 64).r - texture(distanceText, pos - vec3(0, 1, 0) / 64).r;
+	 norm.z = texture(distanceText, pos + vec3(0, 0, 1) / 64).r - texture(distanceText, pos - vec3(0, 0, 1) / 64).r;
 
-	vec3 to_light = vec3(0, 1, 0);
+	return normalize(norm);
+}
+
+vec3 shade(vec3 pos, vec3 ray)
+{
+	const vec3 Kd = vec3(0, 0.807, 0.819);
+	const vec3 Ks = vec3(0, 0.907, 0.619);
+	const vec3 color = vec3(0.7, 0.7, 0.7);
+	const float sE = 6.0;
+	const vec3 to_light = normalize(vec3(0.3, 1, 0.3));
+
+	vec3 norm = getNorm(pos);
 
 	vec3 diffuse = clamp(dot(to_light, norm), 0, 1) * color * Kd;
 
-	vec3 to_eye = normalize(Eye - pos);
-	vec3 specular = pow(clamp(dot(reflect(-to_light, norm), to_eye), 0, 1), sE) * Ks * color;
+	vec3 specular = pow(clamp(dot(reflect(-to_light, norm), -ray), 0, 1), sE) * Ks * color;
 
-	return diffuse + specular;
+	return 0.1 * Kd + diffuse + specular;
 }
 
 void main()
@@ -47,15 +55,21 @@ void main()
 		if(any(greaterThan(rayPos, vec3(1))) || any(lessThan(rayPos, vec3(0))))
 			break;
 
-		density = float(imageLoad(distanceField, ivec3(rayPos * 64))) / 10000;
+		density = texture(distanceText, rayPos).r;
 
-		color.rgb = vec3(0, 0.807, 0.819);
-		color.a = exp(-1.0 * (density * density - 1.0)) * SampleStep * 0.1 * 50.0;
-		fragColor.rgb = fragColor.rgb * (1.0 - color.a) + color.rgb * color.a;
+		color.a = exp(-1.0 * (density * density + 2.0)) * /* SampleStep */ 2 * 50.0;
+		if(color.a > 0.9)
+		{
+			color.rgb = shade(rayPos, rayDir);//vec3(0, 0.807, 0.819);
+
+			fragColor.rgb = fragColor.rgb * (1.0 - color.a) + color.rgb * color.a;
+			break;
+		}
+
 	}
 
-	if(length(fragColor) < 0.1)
-		discard;
+	//if(length(fragColor) < 0.1)
+	//	discard;
 
 	//float val =
 	outColor = vec4(fragColor, 1);
