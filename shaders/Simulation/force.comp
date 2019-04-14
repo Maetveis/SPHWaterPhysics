@@ -38,7 +38,7 @@ const float Mass = 0.02;
 const float Pi = 3.141592653589793;
 
 
-const uint numGridCells = 32;
+const uint numGridCells = 20;
 const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
 const uint numParticles = 0x40000;
 
@@ -290,6 +290,6 @@ void main()
         }
         selfForce *= Mass;
 
-        force[gridIndex[1][1][1].globalOffset + particleId] = selfForce;// + vec3(0, -0.98, 0);
+        force[gridIndex[1][1][1].globalOffset + particleId] = vec3(1, 1, 1);//selfForce;// + vec3(0, -0.98, 0);
     }
 }

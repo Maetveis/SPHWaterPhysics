@@ -50,7 +50,7 @@ public:
 
 	inline void Bind(GLuint unit)
 	{
-		glBindTextureUnit(GL_TEXTURE0 + unit, textureID);
+		glBindTextureUnit(unit, textureID);
 	}
 
 	inline ~Texture()

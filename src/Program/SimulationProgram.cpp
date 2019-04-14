@@ -13,6 +13,10 @@ constexpr const char* pressureBufferName = "pressureBuffer";
 constexpr const char* forceBufferName = "forceBuffer";
 constexpr const char* velocityBufferName = "velocityBuffer";
 constexpr const char* gridBufferName = "gridBuffer";
+constexpr const char* edgeBufferName = "edgeBuffer";
+
+constexpr const char* pressureSource = "../shaders/Simulation/new.comp";
+constexpr const char* forceSource = "../shaders/Simulation/forcenew.comp";
 
 bool CompileProgram(GL::Program& program, const char* source)
 {
@@ -43,6 +47,7 @@ SimulationProgram::SimulationProgram(SimulationState& _state) :
 	state.AttachPressure(pressure, pressureBufferName);
 	state.AttachDensity(pressure, densityBufferName);
 	state.AttachGrid(pressure, gridBufferName);
+	state.AttachEdge(pressure, edgeBufferName);
 
 	state.AttachPressure(force, pressureBufferName);
 	state.AttachDensity(force, densityBufferName);
@@ -58,21 +63,26 @@ void SimulationProgram::CompileShaders()
 
 void SimulationProgram::Run()
 {
+	state.ResetEdgeCount();
+
 	pressure.Use();
 	state.AttachPosition(pressure, positionBufferName);
 
-	glUniform1f(0, 0.0625);
-	glUniform1f(1, 10);
-	glUniform1f(2, 25000);
+	glUniform1f(0, 0.05);
+	glUniform1f(1, 1);
+	glUniform1f(2, 1200);
 
 	glDispatchCompute(state.GridRes(), state.GridRes(), state.GridRes());
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	glFinish();
+	glFlush();
 
 	force.Use();
 	state.AttachPosition(force, positionBufferName);
 	state.AttachVelocity(force, velocityBufferName);
 
-	glUniform1f(0, 0.0625);
+	glUniform1f(0, 0.05);
 
 	glDispatchCompute(state.GridRes(), state.GridRes(), state.GridRes());
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

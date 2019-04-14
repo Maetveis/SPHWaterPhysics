@@ -1,9 +1,6 @@
-/*
-
-*/
 #version 450
 
-layout(local_size_x = 512) in;
+layout(local_size_x = 200) in;
 
 layout(std430) restrict buffer gridBuffer
 {

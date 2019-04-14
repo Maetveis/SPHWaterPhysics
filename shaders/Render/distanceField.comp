@@ -1,0 +1,60 @@
+#version 450
+
+layout(local_size_x = 64) in; // workgroup size
+
+layout(std430) restrict buffer edgeBuffer
+{
+    uint count;
+    vec3 position[];
+} edgeParticles;
+
+layout(r32f, location = 0) uniform restrict image3D distanceField;
+
+const uint distFieldSize = 64;
+
+const float MaxRadius = 5.0;//0.1 * distFieldSize;
+const float MinRadius = 0.0;//0.05 * distFieldSize;
+
+const int boxSize = 5;//int(ceil(distFieldSize * MaxRadius / 2.0));
+
+void main()
+{
+	uint id =
+		gl_GlobalInvocationID.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z +
+		gl_GlobalInvocationID.y * gl_WorkGroupSize.z +
+		gl_GlobalInvocationID.z;
+
+
+	if(id < edgeParticles.count)
+	{
+		vec3 pos = (edgeParticles.position[id] + 1.0) * distFieldSize / 2.0;
+		vec3 center = vec3(pos);
+		for(int x = -1 * boxSize; x < boxSize; ++x)
+		{
+			if(center.x + x < 0 || center.x + x >= distFieldSize)
+				continue;
+
+			for(int y = -1 * boxSize; y < boxSize; ++y)
+			{
+				if(center.y + y < 0 || center.y + y >= distFieldSize)
+					continue;
+
+				for(int z = -1 * boxSize; z < boxSize; ++z)
+				{
+					if(center.z + z < 0 || center.z + z >= distFieldSize)
+						continue;
+
+					float dist = distance(pos, center + vec3(x, y, z));
+					if(dist >= MinRadius && dist <= MaxRadius)
+					{
+						//imageAtomicMin(distanceField, ivec3(center + ivec3(x, y, z)), int(dist * 10000));
+                        float prev = imageLoad(distanceField, ivec3(center + ivec3(x, y, z))).r;
+                        if(dist < prev)
+                            imageStore(distanceField, ivec3(center + ivec3(x, y, z)), vec4(dist));
+					}
+				}
+			}
+		}
+
+	}
+}

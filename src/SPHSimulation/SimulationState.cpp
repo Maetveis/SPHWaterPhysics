@@ -26,6 +26,8 @@ SimulationState::SimulationState(unsigned _resX, unsigned _resY, unsigned _resZ,
 	densityStorage.AttachBuffer(densityBufffer);
 
 	forceStorage.AttachBuffer(forceBuffer);
+
+	edgeStorage.AttachBuffer(edgeBuffer);
 }
 
 struct alignas(16) SimulationState::alignedVector
@@ -49,7 +51,7 @@ std::vector<SimulationState::alignedVector> SimulationState::MakeGrid()
 
 	data.reserve(resX * resY * resZ);
 
-	const float multX = 1. / resX;
+	const float multX = 0.9 / resX;
 	const float multY = 2. / resY;
 	const float multZ = 2. / resZ;
 
@@ -81,12 +83,13 @@ void SimulationState::InitBuffers()
 	forceBuffer.InitEmpty(data.size() * sizeof(data[0]), GL_DYNAMIC_COPY);
 
 	particleIndexBuffer.InitEmpty(2 * data.size() * sizeof(GLuint), GL_DYNAMIC_COPY);
-	unsigned edgeLength = gridResolution;
-	gridBuffer.InitEmpty(edgeLength * edgeLength * edgeLength * sizeof(GLuint), GL_DYNAMIC_COPY);
-	superBlockBuffer.InitEmpty(edgeLength * edgeLength * edgeLength * sizeof(GLuint) / 512, GL_DYNAMIC_COPY);
+	gridBuffer.InitEmpty(gridResolution * gridResolution * gridResolution * sizeof(GLuint), GL_DYNAMIC_COPY);
+	superBlockBuffer.InitEmpty(gridResolution * gridResolution * gridResolution * sizeof(GLuint) / 200, GL_DYNAMIC_COPY);
 
 	pressureBuffer.InitEmpty(data.size() * sizeof(GLfloat), GL_DYNAMIC_COPY);
 	densityBufffer.InitEmpty(data.size() * sizeof(GLfloat), GL_DYNAMIC_COPY);
+
+	edgeBuffer.InitEmpty(100000 * sizeof(data[0]), GL_DYNAMIC_COPY);
 
 	//Note to self: forgeting syncronization screws things up so dont do it
 	glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);

@@ -14,27 +14,24 @@
 #include "../Program/GridProgram.hpp"
 #include "../Program/SimulationProgram.hpp"
 
+#include "../Program/Render/RenderSurface.hpp"
+#include "../Program/Render/RenderPoints.hpp"
+#include "../Program/Render/RenderEdgePoints.hpp"
+
 #include <GL/glew.h>
 
 class SPHWaterScene : public Scene
 {
 private:
 	GL::Program gravityProgram;
-	GL::Program renderProgram;
-	//GL::Buffer storageBuffer;
-	//GL::ShaderStorage storage;
-
-	GL::VertexArray va;
-	GL::VertexArrayBinding vb;
 
 	GLint targetLocation;
 	GLint dtLocation;
 
-	GLint projLocation;
-
 	SimulationState state;
 	GridProgram grid;
 	SimulationProgram simulation;
+	RenderSurface render;
 
 	float time;
 	float timeRemainder;
@@ -42,9 +39,10 @@ private:
 	static constexpr float stepTime = 0.016666666666;
 public:
 	SPHWaterScene() :
-		state(64, 64, 64, 32),
+		state(32, 64, 64, 20),
 		grid(state),
 		simulation(state),
+		render(state),
 		time(0),
 		timeRemainder(0)
 	{

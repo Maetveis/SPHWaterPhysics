@@ -23,6 +23,8 @@ private:
 	GL::Buffer densityBufffer;
 	GL::Buffer forceBuffer;
 
+	GL::Buffer edgeBuffer;
+
 	GL::ShaderStorage positionStorage1;
 	GL::ShaderStorage positionStorage2;
 	GL::ShaderStorage velocityStorage1;
@@ -35,6 +37,8 @@ private:
 	GL::ShaderStorage pressureStorage;
 	GL::ShaderStorage densityStorage;
 	GL::ShaderStorage forceStorage;
+
+	GL::ShaderStorage edgeStorage;
 
 	const unsigned resX;
 	const unsigned resY;
@@ -133,6 +137,26 @@ public:
 		forceStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
 	}
 
+	inline void AttachEdge(const GL::Program& program, const char* name)
+	{
+		edgeStorage.AttachToBlock(program, program.GetShaderStorageBlockIndex(name));
+	}
+
+	inline unsigned GetEdgeCount()
+	{
+		unsigned* edgeCount = reinterpret_cast<unsigned*>(glMapNamedBufferRange(edgeBuffer.GetId(), 0, 4, GL_MAP_READ_BIT));
+		glUnmapNamedBuffer(edgeBuffer.GetId());
+
+		return *edgeCount;
+	}
+
+	inline void ResetEdgeCount()
+	{
+		unsigned* edgeCount = reinterpret_cast<unsigned*>(glMapNamedBufferRange(edgeBuffer.GetId(), 0, 4, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT));
+		*edgeCount = 0;
+		glUnmapNamedBuffer(edgeBuffer.GetId());
+	}
+
 	inline unsigned ResX() const
 	{
 		return resX;
@@ -156,6 +180,11 @@ public:
 	inline GL::Buffer& GridBuffer()
 	{
 		return gridBuffer;
+	}
+
+	inline GL::Buffer& EdgeBuffer()
+	{
+		return edgeBuffer;
 	}
 };
 

@@ -1,6 +1,6 @@
 #version 450
 
-layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+layout(local_size_x = 64) in;
 
 layout(std430) restrict buffer gridBuffer
 {
@@ -12,7 +12,7 @@ layout(std430) restrict writeonly buffer superBlockBuffer
 	uint superGrid[];
 };
 
-const uint superBlockLength = 512;
+const uint superBlockLength = 200;
 
 uvec3 resolution = gl_NumWorkGroups * gl_WorkGroupSize;
 
@@ -22,6 +22,9 @@ void main()
 		gl_GlobalInvocationID.x * resolution.y * resolution.z +
 		gl_GlobalInvocationID.y * resolution.z +
 		gl_GlobalInvocationID.z;
+
+	if(index >= 40)
+		return;
 
 	uint start = index * superBlockLength;
 

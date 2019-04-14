@@ -6,21 +6,17 @@
 
 #include "../Program/GridProgram.hpp"
 
-#include <vector>
-#include <glm/vec3.hpp>
+#include <cmath>
 
 #include <GL/glew.h>
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform2.hpp>
+static constexpr const char* positionBufferName = "positionBuffer";
+static constexpr const char* densityBufferName  = "densityBuffer";
+static constexpr const char* velocityBufferName = "velocityBuffer";
+static constexpr const char* forceBufferName = "forceBuffer";
+//static constexpr const char* indexBufferName = "indexBuffer";
 
-constexpr const char* positionBufferName = "positionBuffer";
-constexpr const char* pressureBufferName = "pressureBuffer";
-constexpr const char* densityBufferName  = "densityBuffer";
-constexpr const char* velocityBufferName = "velocityBuffer";
-constexpr const char* forceBufferName = "forceBuffer";
-constexpr const char* indexBufferName = "indexBuffer";
+static constexpr const unsigned DtLocation = 0;
 
 void SPHWaterScene::OnWindow(SDL_WindowEvent& event)
 {
@@ -57,32 +53,12 @@ bool SPHWaterScene::Begin()
 
 	glPopDebugGroup();
 
-	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, sizeof("VSFS Shader") / sizeof(char), "VSFS Shader");
-
-	if(!renderProgram.VsFsProgram("../shaders/Render/passthrough.vert", "../shaders/Render/passthrough.frag"))
-	{
-		Logger::Error << "Render Program linking failed: " << renderProgram.GetInfoLog() <<  '\n';
-		return false;
-	}
-
-	glPopDebugGroup();
-
 	glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, sizeof("uniforms") / sizeof(char), "uniforms");
 
 	targetLocation = gravityProgram.GetUniformLocation("target");
 	dtLocation = gravityProgram.GetUniformLocation("dt");
 
-	projLocation = renderProgram.GetUniformLocation("proj");
-
-	va.EnableAttrib(0);
-	//va.FormatAttrib(0, sizeof(data[0]), GL_FLOAT, false, 0);
-	//vb.BindAttrib(va, 0);
-
-	//vb.BindBuffer(va, storageBuffer, 0, sizeof(data[0]));
-
-	state.AttachParticleIndex(renderProgram, indexBufferName);
-
-	glClearColor(0.3, 0., 0., 1.);
+	glClearColor(0., 0., 0., 1.);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
@@ -95,11 +71,13 @@ bool SPHWaterScene::Begin()
 
 	glPopDebugGroup();
 
-	state.AttachPressure(renderProgram, pressureBufferName);
 	state.AttachForce(gravityProgram, forceBufferName);
 	state.AttachDensity(gravityProgram, densityBufferName);
 
 	glEnable(GL_PROGRAM_POINT_SIZE);
+
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPopDebugGroup();
 
@@ -128,11 +106,11 @@ constexpr size_t groupZ = 4;
 void SPHWaterScene::Update(const double delta)
 {
 	timeRemainder += delta;
-	time += delta;
 
-	while(timeRemainder >= stepTime)
+	if(timeRemainder >= stepTime)
 	{
-		timeRemainder -= stepTime;
+		time += stepTime;
+		timeRemainder = std::fmod(timeRemainder, stepTime);
 
 		grid.Run();
 		simulation.Run();
@@ -141,7 +119,7 @@ void SPHWaterScene::Update(const double delta)
 		state.AttachPosition(gravityProgram, positionBufferName);
 		state.AttachVelocity(gravityProgram, velocityBufferName);
 
-		glUniform1f(dtLocation, stepTime);
+		glUniform1f(DtLocation, stepTime / 2);
 
 		glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
 
@@ -155,29 +133,7 @@ void SPHWaterScene::Update(const double delta)
 
 void SPHWaterScene::Render()
 {
-	//Clear
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//Render
-
-	renderProgram.Use();
-	state.AttachPosition(renderProgram, positionBufferName);
-
-	va.Bind();
-
-	glm::mat4 proj =
-		glm::perspective(45.0f, 1280/720.0f, 0.01f, 500.0f) *
-		glm::lookAt(glm::vec3( 0.f,  0.f,  3.f), glm::vec3( 0,  0,  0), glm::vec3( 0,  1,  0)) *
-		//glm::rotate<float>(t * 0.002, glm::vec3(0.f, 0.f, 1.f)) *
-		//glm::rotate<float>(t * 0.3, glm::vec3(0.f, 1.f, 0.f)) *
-		glm::rotate<float>(time * 0.1, glm::vec3(0.f, 1.f, 0.f));
-
-	glUniformMatrix4fv(projLocation, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&proj[0][0]));
-
-	glDrawArrays(GL_POINTS, 0, state.ResX() * state.ResY() * state.ResZ());
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-	va.UnBind();
+	render.Render(time);
 
 	/*GLsync wait = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	glFlush();
