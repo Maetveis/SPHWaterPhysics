@@ -18,7 +18,7 @@ out FragmentData
 	vec3 rayStart;
 };
 
-layout(location = 0) uniform mat4 world;
+layout(location = 2) uniform mat4 world;
 
 void main()
 {

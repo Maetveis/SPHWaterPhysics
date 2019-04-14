@@ -68,18 +68,21 @@ void SimulationProgram::Run()
 	pressure.Use();
 	state.AttachPosition(pressure, positionBufferName);
 
-	glUniform1f(0, 0.0625);
-	glUniform1f(1, 10);
-	glUniform1f(2, 25000);
+	glUniform1f(0, 0.05);
+	glUniform1f(1, 1);
+	glUniform1f(2, 1200);
 
 	glDispatchCompute(state.GridRes(), state.GridRes(), state.GridRes());
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	glFinish();
+	glFlush();
 
 	force.Use();
 	state.AttachPosition(force, positionBufferName);
 	state.AttachVelocity(force, velocityBufferName);
 
-	glUniform1f(0, 0.0625);
+	glUniform1f(0, 0.05);
 
 	glDispatchCompute(state.GridRes(), state.GridRes(), state.GridRes());
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

@@ -22,7 +22,7 @@ layout(location = 0) uniform mat4 proj;
 void main()
 {
 	vec3 pos = gl_VertexID < edgeParticles.count ? edgeParticles.position[gl_VertexID] : vec3(-2, -2, -2);
-    out_pos = vec3(1);
+    out_pos = vec3(0, .4, 1);
 
 	gl_Position = proj * vec4(pos, 1);
 }

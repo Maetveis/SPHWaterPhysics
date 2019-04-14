@@ -1,7 +1,7 @@
-#include "SPHRender.hpp"
+#include "RenderSurface.hpp"
 
-#include "../SPHSimulation/SimulationState.hpp"
-#include "../Log/Logger.h"
+#include "../../SPHSimulation/SimulationState.hpp"
+#include "../../Log/Logger.h"
 
 #include <glm/vec3.hpp>
 
@@ -11,34 +11,30 @@
 
 static constexpr const char* EdgeBufferName = "edgeBuffer";
 static constexpr const char* DistanceSource = "../shaders/Render/distanceField.comp";
-//static constexpr const char* VertexSource = "../shaders/Render/quad.vert";
-//static constexpr const char* FragmentSource = "../shaders/Render/distanceField.comp";
+static constexpr const char* VertexSource = "../shaders/Render/quad.vert";
+static constexpr const char* FragmentSource = "../shaders/Render/raycast.frag";
 
 static constexpr const unsigned DistanceTextureUnit = 0;
 
-static constexpr const unsigned WorldLocation = 0;
-static constexpr const unsigned TextureLocation = 3;
-static constexpr const unsigned EyeLocation = 2;
+static constexpr const unsigned TextureLocation = 0;
+static constexpr const unsigned EyeLocation = 1;
+static constexpr const unsigned WorldLocation = 2;
 
-SPHRender::SPHRender(SimulationState& _state) :
+RenderSurface::RenderSurface(SimulationState& _state) :
 	state(_state),
 	distanceFieldTexture(GL_TEXTURE_3D)
 {
 	CompileShaders();
 
-	va.EnableAttrib(0);
-
 	state.AttachEdge(distanceFieldProgram, EdgeBufferName);
 	state.AttachEdge(raycastProgram, EdgeBufferName);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_3D, distanceFieldTexture.GetId());
-
 	glTextureStorage3D(distanceFieldTexture.GetId(), 1, GL_R32F, 64, 64, 64);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(distanceFieldTexture.GetId(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(distanceFieldTexture.GetId(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glBindImageTexture(DistanceTextureUnit, distanceFieldTexture.GetId(), 0, true, 0, GL_READ_WRITE, GL_R32F);
+	glBindTextureUnit(DistanceTextureUnit, distanceFieldTexture.GetId());
 }
 
 static bool CompileProgram(GL::Program& program, const char* source)
@@ -60,17 +56,17 @@ static bool CompileProgram(GL::Program& program, const char* source)
 	return true;
 }
 
-void SPHRender::CompileShaders()
+void RenderSurface::CompileShaders()
 {
 	CompileProgram(distanceFieldProgram, DistanceSource);
 
-	if(!raycastProgram.VsFsProgram("../shaders/Render/quad.vert", "../shaders/Render/raycast.frag"))
+	if(!raycastProgram.VsFsProgram(VertexSource, FragmentSource))
 	{
 		Logger::Error << "Render Program linking failed: " << raycastProgram.GetInfoLog() <<  '\n';
 	}
 }
 
-void SPHRender::Render(float time)
+void RenderSurface::Render(float time)
 {
 	unsigned edgeCount = state.GetEdgeCount();
 
@@ -80,9 +76,7 @@ void SPHRender::Render(float time)
 
 	distanceFieldProgram.Use();
 
-	glBindImageTexture(DistanceTextureUnit, distanceFieldTexture.GetId(), 0, true, 0, GL_READ_WRITE, GL_R32F);
-
-	glUniform1i(0, DistanceTextureUnit);
+	glUniform1i(TextureLocation, DistanceTextureUnit);
 	glDispatchCompute(edgeCount / 64 + 1, 1, 1);
 
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
@@ -91,11 +85,6 @@ void SPHRender::Render(float time)
 
 	raycastProgram.Use();
 	va.Bind();
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_3D, distanceFieldTexture.GetId());
-
-	glBindTextureUnit(1, distanceFieldTexture.GetId());
 
 	//glm::mat4 proj =
 	//	glm::perspective(45.0f, 1280/720.0f, 0.01f, 500.0f) *
@@ -111,10 +100,10 @@ void SPHRender::Render(float time)
 	glUniformMatrix4fv(WorldLocation, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&world[0][0]));
 
 	//texture unit 1
-	glUniform1i(3, 1);
+	glUniform1i(TextureLocation, DistanceTextureUnit);
 
 	glm::vec3 eye = world * glm::vec4(0.0, 0.0, 2.0, 1.0);
-	glUniform3fv(2, 1, reinterpret_cast<GLfloat*>(&eye[0]));
+	glUniform3fv(EyeLocation, 1, reinterpret_cast<GLfloat*>(&eye[0]));
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }

@@ -82,8 +82,8 @@ void GridProgram::Run()
 	//glFinish();
 
 	offset.Use();
-	const unsigned l = state.GridRes() / 8;
-	glDispatchCompute(l, l, l);
+	//const unsigned l = state.GridRes() / 4;
+	glDispatchCompute(1, 1, 1);
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -97,7 +97,7 @@ void GridProgram::Run()
 	//glFinish();
 
 	finalize.Use();
-	glDispatchCompute(state.GridRes() * state.GridRes() * state.GridRes() / 512, 1, 1);
+	glDispatchCompute(state.GridRes() * state.GridRes() * state.GridRes() / 200, 1, 1);
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 

@@ -13,7 +13,7 @@ layout(r32f, location = 0) uniform restrict image3D distanceField;
 const uint distFieldSize = 64;
 
 const float MaxRadius = 5.0;//0.1 * distFieldSize;
-const float MinRadius = 0.2;//0.05 * distFieldSize;
+const float MinRadius = 0.0;//0.05 * distFieldSize;
 
 const int boxSize = 5;//int(ceil(distFieldSize * MaxRadius / 2.0));
 

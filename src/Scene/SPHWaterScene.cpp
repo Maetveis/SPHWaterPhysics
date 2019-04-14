@@ -58,7 +58,7 @@ bool SPHWaterScene::Begin()
 	targetLocation = gravityProgram.GetUniformLocation("target");
 	dtLocation = gravityProgram.GetUniformLocation("dt");
 
-	glClearColor(0.3, 0., 0., 1.);
+	glClearColor(0., 0., 0., 1.);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
@@ -75,7 +75,7 @@ bool SPHWaterScene::Begin()
 	state.AttachDensity(gravityProgram, densityBufferName);
 
 	glEnable(GL_PROGRAM_POINT_SIZE);
-	
+
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -103,8 +103,6 @@ constexpr size_t groupX = 4;
 constexpr size_t groupY = 4;
 constexpr size_t groupZ = 4;
 
-static bool asd = true;
-
 void SPHWaterScene::Update(const double delta)
 {
 	timeRemainder += delta;
@@ -121,7 +119,7 @@ void SPHWaterScene::Update(const double delta)
 		state.AttachPosition(gravityProgram, positionBufferName);
 		state.AttachVelocity(gravityProgram, velocityBufferName);
 
-		glUniform1f(DtLocation, stepTime);
+		glUniform1f(DtLocation, stepTime / 2);
 
 		glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
 

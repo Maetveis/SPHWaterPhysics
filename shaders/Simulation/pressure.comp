@@ -23,7 +23,7 @@ layout(std430) restrict readonly buffer gridBuffer
 	uint gridOffset[];
 };
 
-const uint numGridCells = 32;
+const uint numGridCells = 20;
 const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
 const uint numParticles = 0x40000;
 

@@ -33,14 +33,14 @@ layout(std430) restrict writeonly buffer forceBuffer
     vec3 force[];
 };
 
-const uint numGridCells = 32;
+const uint numGridCells = 20;
 const uint numGridCellsCubed = numGridCells * numGridCells * numGridCells;//gl_NumWorkGroups.x * gl_NumWorkGroups.y * gl_NumWorkGroups.z;
 const uint numParticles = 0x40000;
 
 const float Mass = 0.2;
 const float Pi = 3.141592653589793;
 
-const float Viscosity = 1;//20000;
+const float Viscosity = 2;
 
 layout(location = 0) uniform float SmoothingLength;
 
@@ -71,23 +71,20 @@ uint particleSubIndex;
 
 void calculateGridIndices()
 {
-    uvec3 offset = uvec3(gl_LocalInvocationIndex / 9, (gl_LocalInvocationIndex % 9) / 3, gl_LocalInvocationIndex % 3);
+    ivec3 offset = ivec3(int((gl_LocalInvocationIndex) / 9) - 1, int((gl_LocalInvocationIndex % 9) / 3) - 1, int(gl_LocalInvocationIndex % 3) - 1);
 
-    //bvec3 less = lessThan(gl_WorkGroupID + offset, uvec3(1, 1, 1));
-    //bvec3 more = lessThanEqual(uvec3(numGridCells + 1), gl_WorkGroupID + offset);
-    //offset += 2 * uint(less);
-    //offset -= 2 * uint(more);
+    ivec3 cellIndex = ivec3(gl_WorkGroupID) + offset;
 
-    if( any(lessThan(gl_WorkGroupID + offset, uvec3(1, 1, 1))) || any(lessThanEqual(uvec3(numGridCells + 1), gl_WorkGroupID + offset)))
+    if(any(lessThan(cellIndex, ivec3(0, 0, 0))) || any(greaterThanEqual(cellIndex, ivec3(numGridCells, numGridCells, numGridCells))) )
     {
         gridIndex[gl_LocalInvocationIndex].len = 0;
         return;
     }
 
     uint globalOffset =
-        (gl_WorkGroupID.x + offset.x - 1) * numGridCells * numGridCells +
-        (gl_WorkGroupID.y + offset.y - 1) * numGridCells +
-        (gl_WorkGroupID.z + offset.z - 1);
+        cellIndex.x * numGridCells * numGridCells +
+        cellIndex.y * numGridCells +
+        cellIndex.z;
 
 	if(globalOffset < numGridCellsCubed - 1)
     {
@@ -103,9 +100,6 @@ void calculateGridIndices()
     {
         gridIndex[gl_LocalInvocationIndex].len = 0;
     }
-
-    //force[globalOffset] = vec3(globalOffset, gridIndex[gl_LocalInvocationIndex].len, gl_LocalInvocationIndex);
-
 }
 
 void loadSelfData()
@@ -127,7 +121,7 @@ void loadSelfData()
 
     selfPosition = position[gridIndex[13].globalOffset + particleIndex];
 	selfVelocity = velocity[gridIndex[13].globalOffset + particleIndex];
-	selfPressure = pressure[gridIndex[13].globalOffset + particleIndex];
+	selfPressure = pressure[gridIndex[13].globalOffset + /*particleIndex*/0];
 	selfDensity  = density [gridIndex[13].globalOffset + particleIndex];
     if(particleSubIndex == 0)
     {
@@ -136,8 +130,19 @@ void loadSelfData()
 		sharedPressure[particleIndex] = selfPressure;
 		sharedDensity [particleIndex] = selfDensity;
     }
-
     sharedForce[gl_LocalInvocationIndex] = vec3(0, 0, 0);
+}
+
+float spiky(float r)
+{
+    return
+        (45.0 / Pi / pow(SmoothingLength, 6)) * pow(SmoothingLength - r, 2);
+}
+
+float viscosity(float r)
+{
+    return
+        (45.0 / Pi / pow(SmoothingLength, 6)) * (SmoothingLength - r);
 }
 
 void processGrid(uint grid)
@@ -149,20 +154,18 @@ void processGrid(uint grid)
     vec3 viscosityForce = vec3(0, 0, 0);
 	for(uint index = particleSubIndex; index < gridIndex[grid].len; index += numThreads)
 	{
-        //if(index == selfIndex)
-        //    continue;
 
 		vec3 deltaPos = sharedPosition[index] - selfPosition;
         float r = length(deltaPos);
-		if(r > 0.00000000000000000000001 && r < SmoothingLength)
+		if(r > 0.0000000000000001 && r < SmoothingLength)
 		{
-			pressureForce -= Mass * (sharedPressure[index] + selfPressure) / 2.0 / sharedDensity[index] *
-                -45.f / (Pi * pow(SmoothingLength, 6)) * pow(SmoothingLength - r, 2) * normalize(deltaPos);
+            pressureForce -=
+                Mass * (sharedPressure[index] + selfPressure) / (2 * sharedDensity[index]) *
+                spiky(r) * normalize(deltaPos);
 
-			//pressureForce -= 0.0000000000000000000001 * (sharedPressure[index] + selfPressure);
-
-            viscosityForce += Mass * (sharedVelocity[index] - selfVelocity) / sharedDensity[index] *
-                45.f / (Pi * pow(SmoothingLength, 6)) * (SmoothingLength - r);
+            viscosityForce +=
+                Mass * ((sharedVelocity[index] - selfVelocity) / sharedDensity[index]) *
+                viscosity(r);
 		}
 	}
 
@@ -176,10 +179,10 @@ void loadGrid(uint grid)
 {
     if(gl_LocalInvocationIndex < gridIndex[grid].len)
     {
-		sharedPosition[particleIndex] = position[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
-		sharedVelocity[particleIndex] = velocity[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
-		sharedPressure[particleIndex] = pressure[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
-		sharedDensity [particleIndex] = density [gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
+		sharedPosition[gl_LocalInvocationIndex] = position[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
+		sharedVelocity[gl_LocalInvocationIndex] = velocity[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
+		sharedPressure[gl_LocalInvocationIndex] = pressure[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
+		sharedDensity [gl_LocalInvocationIndex] = density [gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
     }
 }
 
@@ -206,7 +209,7 @@ void main()
 
     for(uint index = 0; index < 27; ++index)
     {
-        if (index == 13)
+        if(index == 13)
             continue;
 
         if(gridIndex[13].len > 0)

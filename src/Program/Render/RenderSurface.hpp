@@ -1,13 +1,13 @@
-#ifndef SPH_RENDER_HPP
-#define SPH_RENDER_HPP
+#ifndef RENDER_SURFACE_HPP
+#define RENDER_SURFACE_HPP
 
-#include "../Helper/Texture.h"
-#include "../Helper/Program.hpp"
-#include "../Helper/VertexArray.hpp"
+#include "../../Helper/Texture.h"
+#include "../../Helper/Program.hpp"
+#include "../../Helper/VertexArray.hpp"
 
 class SimulationState;
 
-class SPHRender
+class RenderSurface
 {
 private:
 	SimulationState& state;
@@ -20,9 +20,9 @@ private:
 
  	void CompileShaders();
 public:
-	SPHRender(SimulationState& _state);
+	RenderSurface(SimulationState& _state);
 
-	~SPHRender() = default;
+	~RenderSurface() = default;
 
 	void Render(float time);
 };
