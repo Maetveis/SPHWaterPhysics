@@ -6,8 +6,8 @@ WindowInfo::WindowInfo() :
 	title(""),
 	x(SDL_WINDOWPOS_UNDEFINED),
 	y(SDL_WINDOWPOS_UNDEFINED),
-	w(1280),
-	h(720),
+	w(1000),
+	h(1000),
 	flags(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)
 {
 }

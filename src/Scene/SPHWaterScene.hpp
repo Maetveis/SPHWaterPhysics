@@ -4,10 +4,7 @@
 #include "Scene.h"
 
 #include "../Helper/Program.hpp"
-#include "../Helper/Buffer.hpp"
 #include "../Helper/ShaderStorage.hpp"
-#include "../Helper/VertexArray.hpp"
-#include "../Helper/VertexArrayBinding.hpp"
 
 #include "../SPHSimulation/SimulationState.hpp"
 
@@ -36,6 +33,8 @@ private:
 	float time;
 	float timeRemainder;
 
+	bool paused;
+
 	static constexpr float stepTime = 0.016666666666;
 public:
 	SPHWaterScene() :
@@ -44,7 +43,8 @@ public:
 		simulation(state),
 		render(state),
 		time(0),
-		timeRemainder(0)
+		timeRemainder(0),
+		paused(false)
 	{
 	}
 
@@ -59,6 +59,7 @@ public:
 	virtual void OnQuit(SDL_QuitEvent& event) override;
 
 	virtual void OnWindow(SDL_WindowEvent& event) override;
+	void OnKeyboard(SDL_KeyboardEvent& event) override;
 
 	virtual ~SPHWaterScene() override;
 };

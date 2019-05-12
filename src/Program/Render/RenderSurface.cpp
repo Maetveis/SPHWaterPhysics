@@ -22,19 +22,14 @@ static constexpr const unsigned WorldLocation = 2;
 
 RenderSurface::RenderSurface(SimulationState& _state) :
 	state(_state),
-	distanceFieldTexture(GL_TEXTURE_3D)
+	camera(glm::vec3(0.5, 0.5, 0.5))
 {
 	CompileShaders();
 
 	state.AttachEdge(distanceFieldProgram, EdgeBufferName);
 	state.AttachEdge(raycastProgram, EdgeBufferName);
 
-	glTextureStorage3D(distanceFieldTexture.GetId(), 1, GL_R32F, 64, 64, 64);
-	glTextureParameteri(distanceFieldTexture.GetId(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTextureParameteri(distanceFieldTexture.GetId(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glBindImageTexture(DistanceTextureUnit, distanceFieldTexture.GetId(), 0, true, 0, GL_READ_WRITE, GL_R32F);
-	glBindTextureUnit(DistanceTextureUnit, distanceFieldTexture.GetId());
+	SetDistanceTextureSize(64);
 }
 
 static bool CompileProgram(GL::Program& program, const char* source)
@@ -66,12 +61,12 @@ void RenderSurface::CompileShaders()
 	}
 }
 
-void RenderSurface::Render(float time)
+void RenderSurface::DistanceField()
 {
 	unsigned edgeCount = state.GetEdgeCount();
 
-	float max = 120.0;
-	glClearTexImage(distanceFieldTexture.GetId(), 0, GL_RED, GL_FLOAT, &max);
+	float max = 1.0;
+	glClearTexImage(distanceFieldTexture->GetId(), 0, GL_RED, GL_FLOAT, &max);
 	glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 	distanceFieldProgram.Use();
@@ -80,30 +75,54 @@ void RenderSurface::Render(float time)
 	glDispatchCompute(edgeCount / 64 + 1, 1, 1);
 
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
+}
 
+void RenderSurface::Raycast()
+{
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	camera.Update(0.1);
 
 	raycastProgram.Use();
 	va.Bind();
 
-	//glm::mat4 proj =
-	//	glm::perspective(45.0f, 1280/720.0f, 0.01f, 500.0f) *
-	//	glm::lookAt(glm::vec3( 0.f,  0.f,  3.f), glm::vec3( 0,  0,  0), glm::vec3( 0,  1,  0)) *
-	//	//glm::rotate<float>(t * 0.002, glm::vec3(0.f, 0.f, 1.f)) *
-	//	//glm::rotate<float>(t * 0.3, glm::vec3(0.f, 1.f, 0.f)) *
-	//	glm::rotate<float>(time * 0.1, glm::vec3(0.f, 1.f, 0.f));
+	//glm::mat4 world =
+	//	glm::translate(glm::vec3(.5, .5, .5)) *
+	//	glm::rotate(-0.3f, glm::vec3(1, 0, 0)) *
+	//	glm::rotate(-0.5f, glm::vec3(0, 1, 0)) *
+	//	glm::translate(glm::vec3(-.5, -.5, -.5)) *
+	//	glm::translate(glm::vec3(.5, .5, 1.5)) *
+	//	glm::scale(glm::vec3(.5, .5, .5));
 
-	glm::mat4 world =
-		glm::translate(glm::vec3(.5, .5, 1.0)) *
-		glm::scale(glm::vec3(.5, .5, .5));
-
-	glUniformMatrix4fv(WorldLocation, 1, GL_FALSE, reinterpret_cast<GLfloat*>(&world[0][0]));
+	glUniformMatrix4fv(WorldLocation, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&camera.GetView()[0][0]));
 
 	//texture unit 1
 	glUniform1i(TextureLocation, DistanceTextureUnit);
 
-	glm::vec3 eye = world * glm::vec4(0.0, 0.0, 2.0, 1.0);
-	glUniform3fv(EyeLocation, 1, reinterpret_cast<GLfloat*>(&eye[0]));
+	//glm::vec3 eye = world * glm::vec4(0.0, 0.0, 2.0, 1.0);
+	glUniform3fv(EyeLocation, 1, reinterpret_cast<const GLfloat*>(&camera.GetEye()[0]));
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void RenderSurface::Render(float time)
+{
+	DistanceField();
+	Raycast();
+}
+
+void RenderSurface::SetDistanceTextureSize(unsigned length)
+{
+	distanceFieldTexture = std::make_unique<GL::Texture>(GL_TEXTURE_3D);
+
+	glTextureStorage3D(distanceFieldTexture->GetId(), 1, GL_R32F, length, length, length);
+	glTextureParameteri(distanceFieldTexture->GetId(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(distanceFieldTexture->GetId(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTextureParameteri(distanceFieldTexture->GetId(), GL_TEXTURE_WRAP_S,  GL_MIRRORED_REPEAT);
+	glTextureParameteri(distanceFieldTexture->GetId(), GL_TEXTURE_WRAP_T,  GL_MIRRORED_REPEAT);
+	glTextureParameteri(distanceFieldTexture->GetId(), GL_TEXTURE_WRAP_R,  GL_MIRRORED_REPEAT);
+
+	glBindImageTexture(DistanceTextureUnit, distanceFieldTexture->GetId(), 0, true, 0, GL_READ_WRITE, GL_R32F);
+	glBindTextureUnit(DistanceTextureUnit, distanceFieldTexture->GetId());
 }

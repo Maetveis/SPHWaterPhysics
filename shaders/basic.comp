@@ -25,6 +25,7 @@ layout(std430) restrict readonly buffer densityBuffer
 const float Damping = 0.1;
 
 layout(location = 0) uniform float dt;
+layout(location = 1) uniform vec3 gravityDir;
 
 uvec3 resolution = gl_NumWorkGroups * gl_WorkGroupSize;
 
@@ -35,7 +36,7 @@ void main()
         gl_GlobalInvocationID.y * resolution.z +
         gl_GlobalInvocationID.z;
 
-    vec3 acceleration = force[id] / density[id] + vec3(0, -9.8, 0);
+    vec3 acceleration = force[id] / density[id] + gravityDir * 9.8;
     vec3 vel = velocity[id] + acceleration * dt;
     vec3 pos = position[id] + vel * dt;
 
