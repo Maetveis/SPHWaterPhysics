@@ -51,7 +51,7 @@ std::vector<SimulationState::alignedVector> SimulationState::MakeGrid()
 
 	data.reserve(resX * resY * resZ);
 
-	const float multX = 0.9 / resX;
+	const float multX = 1. / resX;
 	const float multY = 2. / resY;
 	const float multZ = 2. / resZ;
 
@@ -89,7 +89,7 @@ void SimulationState::InitBuffers()
 	pressureBuffer.InitEmpty(data.size() * sizeof(GLfloat), GL_DYNAMIC_COPY);
 	densityBufffer.InitEmpty(data.size() * sizeof(GLfloat), GL_DYNAMIC_COPY);
 
-	edgeBuffer.InitEmpty(100000 * sizeof(data[0]), GL_DYNAMIC_COPY);
+	edgeBuffer.InitEmpty(data.size() * sizeof(data[0]), GL_DYNAMIC_COPY);
 
 	//Note to self: forgeting syncronization screws things up so dont do it
 	glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);

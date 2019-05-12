@@ -47,7 +47,7 @@ shared float sharedDensity[64];
 
 struct Sum
 {
-    uint count;
+    float count;
     vec3 sum;
 };
 
@@ -143,9 +143,10 @@ void processGrid(uint grid)
 		float rsquared = dot(deltaPos, deltaPos);
 		if(rsquared < SmoothingLength * SmoothingLength)
 		{
-            ++sharedCenter[gl_LocalInvocationIndex].count;
-            sharedCenter[gl_LocalInvocationIndex].sum += deltaPos;
-			sharedDensity[gl_LocalInvocationIndex] += poly6(rsquared);
+            float kern = poly6(rsquared);
+            sharedCenter[gl_LocalInvocationIndex].count += kern;
+            sharedCenter[gl_LocalInvocationIndex].sum += kern * deltaPos;
+			sharedDensity[gl_LocalInvocationIndex] += kern;//poly6(rsquared);
 		}
     }
 }
@@ -212,10 +213,10 @@ void main()
 
         selfDensity *= Mass;
 
-        density [gridIndex[13].globalOffset + particleIndex] = max(selfDensity, 0.1);
+        density [gridIndex[13].globalOffset + particleIndex] = /*max(*/selfDensity/*, 0.000001)*/;
         pressure[gridIndex[13].globalOffset + particleIndex] = max(Stiffness * (selfDensity - RestDensity), 0.0);
 
-        if(midPoint.count > 0 && length(midPoint.sum / midPoint.count) > EdgeThreshHold)
+        if(midPoint.count > 300 && length(midPoint.sum / midPoint.count) > EdgeThreshHold)
         {
             uint offset = atomicAdd(edgeParticles.count, 1);
             edgeParticles.position[offset] = selfPosition;

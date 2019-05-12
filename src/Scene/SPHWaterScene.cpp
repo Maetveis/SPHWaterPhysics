@@ -5,9 +5,9 @@
 #include "../Main/Game.h"
 
 #include "../Program/GridProgram.hpp"
+#include "../Program/Render/Direction.hpp"
 
 #include <cmath>
-
 #include <GL/glew.h>
 
 static constexpr const char* positionBufferName = "positionBuffer";
@@ -58,7 +58,7 @@ bool SPHWaterScene::Begin()
 	targetLocation = gravityProgram.GetUniformLocation("target");
 	dtLocation = gravityProgram.GetUniformLocation("dt");
 
-	glClearColor(0., 0., 0., 1.);
+	glClearColor(1., 1., 1., 1.);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
@@ -93,7 +93,7 @@ void SPHWaterScene::End()
 {
 
 }
-
+#include "../Program/Render/Direction.hpp"
 void SPHWaterScene::Pause()
 {
 
@@ -107,7 +107,7 @@ void SPHWaterScene::Update(const double delta)
 {
 	timeRemainder += delta;
 
-	if(timeRemainder >= stepTime)
+	if(!paused && timeRemainder >= stepTime)
 	{
 		time += stepTime;
 		timeRemainder = std::fmod(timeRemainder, stepTime);
@@ -120,6 +120,9 @@ void SPHWaterScene::Update(const double delta)
 		state.AttachVelocity(gravityProgram, velocityBufferName);
 
 		glUniform1f(DtLocation, stepTime / 2);
+
+		glm::vec3 grav = render.GetGravity();
+		glUniform3fv(1, 1, reinterpret_cast<const GLfloat*>(&grav[0]));
 
 		glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
 
@@ -134,14 +137,47 @@ void SPHWaterScene::Update(const double delta)
 void SPHWaterScene::Render()
 {
 	render.Render(time);
+}
 
-	/*GLsync wait = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	glFlush();
-
-	glWaitSync(wait, 0, GL_TIMEOUT_IGNORED);
-	glClientWaitSync(wait, 0, 10000000000000);
-
-	glDeleteSync(wait);*/
+void SPHWaterScene::OnKeyboard(SDL_KeyboardEvent& event)
+{
+	switch(event.keysym.sym)
+	{
+		case SDLK_ESCAPE:
+			game->running = false;
+			break;
+		case 'k':
+			if(event.state == SDL_RELEASED)
+				paused = !paused;
+			break;
+		case 'w':
+			if(event.state == SDL_PRESSED)
+				render.SetVerticalDirection(Direction::Forward);
+			else
+				render.SetVerticalDirection(Direction::Stop);
+			break;
+		case 's':
+			if(event.state == SDL_PRESSED)
+				render.SetVerticalDirection(Direction::Backward);
+			else
+				render.SetVerticalDirection(Direction::Stop);
+			break;
+		case 'a':
+			if(event.state == SDL_PRESSED)
+				render.SetHorizontalDirection(Direction::Forward);
+			else
+				render.SetHorizontalDirection(Direction::Stop);
+			break;
+		case 'd':
+			if(event.state == SDL_PRESSED)
+				render.SetHorizontalDirection(Direction::Backward);
+			else
+				render.SetHorizontalDirection(Direction::Stop);
+			break;
+		default:
+			Logger::Debug << "Pressed key with code: " << event.keysym.sym << '\n';
+			break;
+	}
 }
 
 SPHWaterScene::~SPHWaterScene()

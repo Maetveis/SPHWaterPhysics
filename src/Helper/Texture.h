@@ -11,10 +11,6 @@ namespace GL {
 class Texture
 {
 public:
-	Texture()
-	{
-	}
-
 	inline explicit Texture(GLenum target)
 	{
 		glCreateTextures(target, 1, &textureID);
@@ -23,6 +19,17 @@ public:
 	Texture(const Texture&) = delete;
 
 	Texture& operator=(const Texture&) = delete;
+
+	inline Texture(Texture&& other)
+	{
+		std::swap(textureID, other.textureID);
+	}
+
+	inline Texture& operator=(Texture&& other)
+	{
+		std::swap(textureID, other.textureID);
+		return *this;
+	}
 
 	void FromFile(GLenum target, const std::string fileName);
 

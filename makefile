@@ -30,6 +30,7 @@ SRCS := DataStore/GPUAllocator.cpp \
 	Helper/Program.cpp Helper/UniformBuffer.cpp Helper/Shader.cpp Helper/Utility.cpp Helper/ShaderStorage.cpp \
 	Program/Mesh3DColor.cpp Program/GridProgram.cpp Program/SimulationProgram.cpp \
 	Program/Render/RenderSurface.cpp Program/Render/RenderPoints.cpp Program/Render/RenderEdgePoints.cpp \
+	Program/Render/OrbiterCamera.cpp \
 	SPHSimulation/SimulationState.cpp
 
 
