@@ -32,7 +32,7 @@ void RenderPoints::CompileShaders()
 {
 	if(!renderProgram.VsFsProgram(VertexSource, FragmentSource))
 	{
-		Logger::Error << "Render Program linking failed: " << renderProgram.GetInfoLog() <<  '\n';
+		Logger::Error() << "Render Program linking failed: " << renderProgram.GetInfoLog() <<  '\n';
 	}
 }
 

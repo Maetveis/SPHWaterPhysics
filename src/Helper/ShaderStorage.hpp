@@ -21,7 +21,7 @@ private:
 public:
 	ShaderStorage()
 	{
-		Logger::Debug << "Created shader storage buffer with binding index: " << bindingIndex.Get() << '\n';
+		Logger::Debug() << "Created shader storage buffer with binding index: " << bindingIndex.Get() << '\n';
 	}
 
 	void AttachToBlock(const Program& program, const GLuint index) const;

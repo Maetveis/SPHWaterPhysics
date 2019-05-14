@@ -27,17 +27,17 @@ bool InGameScene::Begin()
 
 	if(!LoadShaders())
 	{
-		Logger::Error << "Failed to load Shaders" << '\n';
+		Logger::Error() << "Failed to load Shaders" << '\n';
 		return false;
 	}
 
 	if(!LoadData())
 	{
-		Logger::Error << "Loading data failed" << '\n';
+		Logger::Error() << "Loading data failed" << '\n';
 		return false;
 	}
 
-	Logger::Info << "RenderManager.Init() finished succesfully" << '\n'; //std::endl;
+	Logger::Info() << "RenderManager.Init() finished succesfully" << '\n'; //std::endl;
 
 	return true;
 }
@@ -52,7 +52,7 @@ bool InGameScene::LoadData()
 	if(	!loader.ImportFile("../assets/cube.obj", cube)
 		|| !loader.ImportFile("../assets/alfa.obj", car))
 	{
-		Logger::Error << "Model loading failed\n";
+		Logger::Error() << "Model loading failed\n";
 		return false;
 	}
 
@@ -61,7 +61,7 @@ bool InGameScene::LoadData()
 
 bool InGameScene::LoadShaders()
 {
-	Logger::Debug << "UniformLocation(model): " << (modelID = program.Program().GetUniformLocation("model")) << '\n';
+	Logger::Debug() << "UniformLocation(model): " << (modelID = program.Program().GetUniformLocation("model")) << '\n';
 
 	program.SetProj(glm::perspective(45.0f, 640/360.0f, 0.01f, 500.0f));
 	program.SetView(glm::lookAt(glm::vec3( 0.f,  1.f,  6.f), glm::vec3( 0,  0,  0), glm::vec3( 0,  1,  0)));
@@ -142,7 +142,7 @@ void InGameScene::OnWindow(SDL_WindowEvent& event)
 
 void InGameScene::Quit()
 {
-	Logger::Debug << "Exit" << '\n';
+	Logger::Debug() << "Exit" << '\n';
 	game->running = false;
 }
 void InGameScene::OnKeyboard(SDL_KeyboardEvent& event)
@@ -153,7 +153,7 @@ void InGameScene::OnKeyboard(SDL_KeyboardEvent& event)
 			Quit();
 			break;
 		default:
-			Logger::Debug << "Pressed key with code: " << event.keysym.sym << '\n';
+			Logger::Debug() << "Pressed key with code: " << event.keysym.sym << '\n';
 			break;
 	}
 }

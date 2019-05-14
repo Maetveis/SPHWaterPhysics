@@ -10,7 +10,7 @@ std::string ReadShader(const std::string& fileName)
 	std::ifstream shaderStream(fileName);
 	if (!shaderStream.is_open())
 	{
-		Logger::Warning << "Couldn't open shader file " << fileName << '\n';
+		Logger::Warning() << "Couldn't open shader file " << fileName << '\n';
 		return "";
 	}
 
@@ -44,7 +44,7 @@ bool Shader::FromString(const std::string& source)
 {
 	if(shaderId == 0)
 	{
-		Logger::Warning << "Can't compile shader: shader name invalid.\n";
+		Logger::Warning() << "Can't compile shader: shader name invalid.\n";
 		return false;
 	}
 

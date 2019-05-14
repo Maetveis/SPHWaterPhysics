@@ -19,7 +19,7 @@ bool WindowManager::SpawnWindow(const WindowInfo& info)
 	mainWindow = SDL_CreateWindow(info.title.c_str(), info.x, info.y, info.w, info.h, info.flags);
 	if(mainWindow == nullptr)
 	{
-		Logger::Error << "Couldn't create window: " << SDL_GetError() << '\n';
+		Logger::Error() << "Couldn't create window: " << SDL_GetError() << '\n';
 		return false;
 	}
 	
@@ -27,7 +27,7 @@ bool WindowManager::SpawnWindow(const WindowInfo& info)
 	oContext = SDL_GL_CreateContext(mainWindow);
     if (!oContext)
 	{
-		Logger::Error << "Couldn't create openGL context: " << SDL_GetError() << '\n';
+		Logger::Error() << "Couldn't create openGL context: " << SDL_GetError() << '\n';
         return false;
     }
 	

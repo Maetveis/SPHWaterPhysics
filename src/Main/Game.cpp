@@ -40,16 +40,16 @@ void LogGLDebug(GLenum source, GLenum type, GLuint id,
 {
 	switch (severity) {
 		case GL_DEBUG_SEVERITY_HIGH:
-			Logger::Error << "Opengl: " << message << '\n';
+			Logger::Error() << "Opengl: " << message << '\n';
 			break;
 		case GL_DEBUG_SEVERITY_MEDIUM:
-			Logger::Warning << "Opengl: " << message << '\n';
+			Logger::Warning() << "Opengl: " << message << '\n';
 			break;
 		case GL_DEBUG_SEVERITY_LOW:
-			Logger::Warning << "Opengl low warning: " << message << '\n';
+			Logger::Warning() << "Opengl low warning: " << message << '\n';
 			break;
 		case GL_DEBUG_SEVERITY_NOTIFICATION:
-			Logger::Info << "Opengl notification: " << message << '\n';
+			Logger::Info() << "Opengl notification: " << message << '\n';
 			break;
 	}
 }
@@ -73,7 +73,7 @@ bool Game::Init()
 	sceneManager.AttachGame(this);
 	if(!sceneManager.ChangeScene(std::make_unique<SPHWaterScene>()))
 	{
-		Logger::Error << "Failed initializing first scene. Exiting\n";
+		Logger::Error() << "Failed initializing first scene. Exiting\n";
 		return false;
 	}
 

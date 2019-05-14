@@ -1,11 +1,12 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <type_traits>
 #include <iostream>
-#include <utility>
 
-enum class LogSeverity
+namespace Logging
+{
+
+enum class Level: short
 {
 	Debug = 0,
 	Info = 1,
@@ -14,75 +15,88 @@ enum class LogSeverity
 	None = 10
 };
 
-template<LogSeverity S>
-struct LogSeverityString
+template<Level L>
+struct LevelString
 {
 };
 
 template<>
-struct LogSeverityString<LogSeverity::Debug>
+struct LevelString<Level::Debug>
 {
 	static constexpr char value[] = "[Debug]";
 };
 
 template<>
-struct LogSeverityString<LogSeverity::Info>
+struct LevelString<Level::Info>
 {
 	static constexpr char value[] = "[Info]";
 };
 
 template<>
-struct LogSeverityString<LogSeverity::Warning>
+struct LevelString<Level::Warning>
 {
 	static constexpr char value[] = "[Warning]";
 };
 
 template<>
-struct LogSeverityString<LogSeverity::Error>
+struct LevelString<Level::Error>
 {
 	static constexpr char value[] = "[Error]";
 };
 
-template<LogSeverity A>
-class LoggerInstance
+class Settings
 {
+private:
+	static Level level;
 public:
-	//Actual logging class
-	template
-	<
-		LogSeverity C,
-		bool = (A <= C)
-	>
-	struct Output
-	{
-		template<typename T>
-		std::ostream& operator<< (T&& data) const
-		{
-			return std::cerr << LogSeverityString<C>::value << ' ' << std::forward<T>(data);
-		}
-	};
+	static void SetLevel(Level _level);
 
-	//Dummy class
-	template
-	<
-		LogSeverity C
-	>
-	struct Output<C, false>
-	{
-		template<typename T>
-		constexpr Output operator<< (T&&) const
-		{
-			return Output();
-		}
-	};
-	
-	static constexpr Output<LogSeverity::Debug> Debug{};
-	static constexpr Output<LogSeverity::Info> Info{};
-	static constexpr Output<LogSeverity::Warning> Warning{};
-	static constexpr Output<LogSeverity::Error> Error{};
+	static Level GetLevel();
 };
 
-//Main compile-time loglevel set here
-using Logger = LoggerInstance<LogSeverity::Debug>;
+template<Level L>
+class Instance
+{
+public:
+	Instance()
+	{
+		if(L >= Settings::GetLevel())
+		{
+			std::cerr << LevelString<L>::value << ' ';
+		}
+	}
 
-#endif //LOGGER_H
+	template<typename T>
+	Instance& operator<<(T&& t)
+	{
+		if(L >= Settings::GetLevel())
+		{
+			std::cerr << t;
+		}
+		return *this;
+	}
+
+	template<typename T>
+	Instance& operator<<(const T&& t)
+	{
+		if(L >= Settings::GetLevel())
+		{
+			std::cerr << t;
+		}
+		return *this;
+	}
+};
+
+struct Logger
+{
+	using Debug = Logging::Instance<Logging::Level::Debug>;
+	using Info = Logging::Instance<Logging::Level::Info>;
+	using Warning = Logging::Instance<Logging::Level::Warning>;
+	using Error = Logging::Instance<Logging::Level::Error>;
+};
+
+}// namespace Logger
+
+using Logger = Logging::Logger;
+
+#endif

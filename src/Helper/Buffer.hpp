@@ -16,7 +16,7 @@ public:
 	Buffer()
 	{
 		glCreateBuffers(1, &id);
-		Logger::Debug << "Created glBuffer with id: " << id << '\n';
+		Logger::Debug() << "Created glBuffer with id: " << id << '\n';
 	}
 
 	GLint GetId() const

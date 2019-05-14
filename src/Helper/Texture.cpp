@@ -12,7 +12,7 @@ void Texture::FromFile(GLenum target, const std::string fileName)
 	SDL_Surface* loaded_img = IMG_Load(fileName.c_str());
 	if(loaded_img == nullptr)
 	{
-		Logger::Error << "Failed to load Image: " << fileName << '\n';
+		Logger::Error() << "Failed to load Image: " << fileName << '\n';
 		return;
 	}
 

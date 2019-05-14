@@ -25,7 +25,7 @@ bool ModelLoader::ImportFile(const std::string& filename, RigidModel& newModel)
 
 	if(!scene)
 	{
-		Logger::Warning << "Error parsing file: " << filename << "\nAssimp error: " << importer.GetErrorString() << '\n';
+		Logger::Warning() << "Error parsing file: " << filename << "\nAssimp error: " << importer.GetErrorString() << '\n';
 		return false;
 	}
 
@@ -42,7 +42,7 @@ bool ModelLoader::ImportFile(const std::string& filename, RigidModel& newModel)
 			HandleIndices<GLuint>(*scene->mMeshes[i], newModel, vertex);
 	}
 
-	Logger::Debug << "Successfully loaded " << filename << '\n';
+	Logger::Debug() << "Successfully loaded " << filename << '\n';
 
 	return true;
 }

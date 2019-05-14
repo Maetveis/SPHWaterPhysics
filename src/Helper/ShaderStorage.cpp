@@ -17,7 +17,7 @@ void ShaderStorage::AttachBufferRange(const Buffer &buffer, GLuint offset, GLuin
 
 void ShaderStorage::AttachToBlock(const Program& program, const GLuint index) const
 {
-	//Logger::Debug << "shader storage buffer bind:" << bindingIndex << " -> program" << program.Get() << ":"  << index <<  '\n';
+	//Logger::Debug() << "shader storage buffer bind:" << bindingIndex << " -> program" << program.Get() << ":"  << index <<  '\n';
 
 	glShaderStorageBlockBinding(program.Get(), index, bindingIndex);
 }

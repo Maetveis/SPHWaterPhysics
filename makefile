@@ -31,6 +31,7 @@ SRCS := DataStore/GPUAllocator.cpp \
 	Program/Mesh3DColor.cpp Program/GridProgram.cpp Program/SimulationProgram.cpp \
 	Program/Render/RenderSurface.cpp Program/Render/RenderPoints.cpp Program/Render/RenderEdgePoints.cpp \
 	Program/Render/OrbiterCamera.cpp \
+	Log/Logger.cpp \
 	SPHSimulation/SimulationState.cpp
 
 

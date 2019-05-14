@@ -39,7 +39,7 @@ bool SPHWaterScene::Begin()
 
 	if(!gravityShader.FromFile("../shaders/basic.comp"))
 	{
-		Logger::Error << "Gravity Shader compilation failed: " << gravityShader.GetInfoLog() <<  '\n';
+		Logger::Error() << "Gravity Shader compilation failed: " << gravityShader.GetInfoLog() <<  '\n';
 		return false;
 	}
 
@@ -47,7 +47,7 @@ bool SPHWaterScene::Begin()
 
 	if(!gravityProgram.Link())
 	{
-		Logger::Error << "Gravity Program linking failed: " << gravityProgram.GetInfoLog() <<  '\n';
+		Logger::Error() << "Gravity Program linking failed: " << gravityProgram.GetInfoLog() <<  '\n';
 		return false;
 	}
 
@@ -66,7 +66,7 @@ bool SPHWaterScene::Begin()
 	GLint val;
 	glGetIntegerv(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE, &val);
 
-	Logger::Debug << "Maximum size of shader local storage: " <<
+	Logger::Debug() << "Maximum size of shader local storage: " <<
 		val << '\n';
 
 	glPopDebugGroup();
@@ -175,7 +175,7 @@ void SPHWaterScene::OnKeyboard(SDL_KeyboardEvent& event)
 				render.SetHorizontalDirection(Direction::Stop);
 			break;
 		default:
-			Logger::Debug << "Pressed key with code: " << event.keysym.sym << '\n';
+			Logger::Debug() << "Pressed key with code: " << event.keysym.sym << '\n';
 			break;
 	}
 }

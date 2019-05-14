@@ -17,7 +17,7 @@ void UniformBuffer::AttachBufferRange(const Buffer &buffer, GLuint offset, GLuin
 
 void UniformBuffer::AttachToBlock(const Program& program, const GLuint index) const
 {
-	Logger::Debug << "unform buffer bind:" << index << " -> " << bindingIndex <<  '\n';
+	Logger::Debug() << "unform buffer bind:" << index << " -> " << bindingIndex <<  '\n';
 
 	glUniformBlockBinding(program.Get(), index, bindingIndex);
 }

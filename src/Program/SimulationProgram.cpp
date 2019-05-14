@@ -23,14 +23,14 @@ bool CompileProgram(GL::Program& program, const char* source)
 	GL::Shader shader(GL_COMPUTE_SHADER);
 	if(!shader.FromFile(source))
 	{
-		Logger::Error << "Shader compilation [" << source <<"] failed with message: " << shader.GetInfoLog() << '\n';
+		Logger::Error() << "Shader compilation [" << source <<"] failed with message: " << shader.GetInfoLog() << '\n';
 		return false;
 	}
 
 	program.AttachShader(shader);
 	if(!program.Link())
 	{
-		Logger::Error << "Shader linking failed with message: " << program.GetInfoLog() << '\n';
+		Logger::Error() << "Shader linking failed with message: " << program.GetInfoLog() << '\n';
 		return false;
 	}
 

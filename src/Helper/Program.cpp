@@ -17,21 +17,21 @@ bool Program::VsFsProgram( const std::string& vertexShaderName,
 	bool valid = true;
 	if(!vertexShader.FromFile(vertexShaderName))
 	{
-		Logger::Error << "Vertex Shader Compilation failed:\n"
+		Logger::Error() << "Vertex Shader Compilation failed:\n"
 			<< vertexShader.GetInfoLog() << '\n';
 		valid = false;
 	}
 
 	if(!fragmentShader.FromFile(fragmentShaderName))
 	{
-		Logger::Error << "Fragment Shader Compilation failed:\n"
+		Logger::Error() << "Fragment Shader Compilation failed:\n"
 			<< fragmentShader.GetInfoLog() << '\n';
 		valid = false;
 	}
 
 	if(!valid)
 	{
-		Logger::Error << "Vertex Fragment program creation failed: Shader compilation failed\n";
+		Logger::Error() << "Vertex Fragment program creation failed: Shader compilation failed\n";
 		return false;
 	}
 
@@ -39,7 +39,7 @@ bool Program::VsFsProgram( const std::string& vertexShaderName,
 	AttachShader(fragmentShader);
 	if(!Link())
 	{
-		Logger::Error << "Vertex Fragment program creation failed: Linking failed:\n"
+		Logger::Error() << "Vertex Fragment program creation failed: Linking failed:\n"
 			<< GetInfoLog() << '\n';
 	}
 

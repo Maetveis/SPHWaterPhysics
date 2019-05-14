@@ -25,7 +25,7 @@ public:
 
 	UniformBuffer()
 	{
-		Logger::Debug << "Created unifrom buffer with binding index: " << bindingIndex.Get() << '\n';
+		Logger::Debug() << "Created unifrom buffer with binding index: " << bindingIndex.Get() << '\n';
 	}
 
 	void AttachToBlock(const Program& program, const GLuint index) const;

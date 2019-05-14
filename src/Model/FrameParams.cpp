@@ -5,7 +5,7 @@
 
 void FrameParams::Bind(const GL::Program& program)
 {
-	Logger::Debug << "Fp " << blockName << " " << program.GetUniformBlockIndex(blockName) << '\n';
+	Logger::Debug() << "Fp " << blockName << " " << program.GetUniformBlockIndex(blockName) << '\n';
 	bindingPoint.AttachToBlock(program, program.GetUniformBlockIndex(blockName));
 	bindingPoint.AttachBuffer(buffer);
 }

@@ -43,11 +43,11 @@ bool GlewInit::InitGlew()
 	GLenum error = glewInit();
 	if ( error != GLEW_OK )
 	{
-		Logger::Error << "Glew Init failed: " << glewGetErrorString(error) << '\n';
+		Logger::Error() << "Glew Init failed: " << glewGetErrorString(error) << '\n';
 		return false;
 	}
 
-	Logger::Info << "Opengl version: " << glGetString(GL_VERSION) << '\n';
+	Logger::Info() << "Opengl version: " << glGetString(GL_VERSION) << '\n';
 
 	return true;
 }
