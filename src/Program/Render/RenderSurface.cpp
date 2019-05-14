@@ -81,18 +81,8 @@ void RenderSurface::Raycast()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	camera.Update(0.1);
-
 	raycastProgram.Use();
 	va.Bind();
-
-	//glm::mat4 world =
-	//	glm::translate(glm::vec3(.5, .5, .5)) *
-	//	glm::rotate(-0.3f, glm::vec3(1, 0, 0)) *
-	//	glm::rotate(-0.5f, glm::vec3(0, 1, 0)) *
-	//	glm::translate(glm::vec3(-.5, -.5, -.5)) *
-	//	glm::translate(glm::vec3(.5, .5, 1.5)) *
-	//	glm::scale(glm::vec3(.5, .5, .5));
 
 	glUniformMatrix4fv(WorldLocation, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&camera.GetView()[0][0]));
 
@@ -105,9 +95,18 @@ void RenderSurface::Raycast()
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void RenderSurface::Render(float time)
+void RenderSurface::Update(float delta)
+{
+	camera.Update(delta);
+}
+
+void RenderSurface::UpdateParticles()
 {
 	DistanceField();
+}
+
+void RenderSurface::Render()
+{
 	Raycast();
 }
 

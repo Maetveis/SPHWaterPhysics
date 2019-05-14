@@ -107,6 +107,8 @@ void SPHWaterScene::Update(const double delta)
 {
 	timeRemainder += delta;
 
+	render.Update(delta);
+
 	if(!paused && timeRemainder >= stepTime)
 	{
 		time += stepTime;
@@ -127,6 +129,8 @@ void SPHWaterScene::Update(const double delta)
 		glDispatchCompute(state.ResX() / groupX, state.ResY() / groupY, state.ResZ() / groupZ);
 
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		render.UpdateParticles();
 	}
 }
 
@@ -136,7 +140,7 @@ void SPHWaterScene::Update(const double delta)
 
 void SPHWaterScene::Render()
 {
-	render.Render(time);
+	render.Render();
 }
 
 void SPHWaterScene::OnKeyboard(SDL_KeyboardEvent& event)

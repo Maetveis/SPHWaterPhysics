@@ -33,7 +33,11 @@ public:
 
 	~RenderSurface() = default;
 
-	void Render(float time);
+	void Update(float time);
+
+	void UpdateParticles();
+
+	void Render();
 
 	void SetDistanceTextureSize(unsigned length);
 
