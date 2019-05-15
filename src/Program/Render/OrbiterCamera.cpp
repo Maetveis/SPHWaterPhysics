@@ -31,10 +31,10 @@ void OrbiterCamera::Update(float delta)
 		switch(horizontalDirection)
 		{
 			case Direction::Forward:
-				horizontalAngle -= 0.1 * delta;
+				horizontalAngle -= delta;
 				break;
 			case Direction::Backward:
-				horizontalAngle += 0.1 * delta;
+				horizontalAngle += delta;
 			default:
 				break;
 		}
@@ -43,10 +43,10 @@ void OrbiterCamera::Update(float delta)
 		switch(verticalDirection)
 		{
 			case Direction::Forward:
-				verticalAngle -= 0.1 * delta;
+				verticalAngle -= delta;
 				break;
 			case Direction::Backward:
-				verticalAngle += 0.1 * delta;
+				verticalAngle += delta;
 			default:
 				break;
 		}

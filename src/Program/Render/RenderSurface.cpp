@@ -27,7 +27,7 @@ RenderSurface::RenderSurface(SimulationState& _state) :
 	CompileShaders();
 
 	state.AttachEdge(distanceFieldProgram, EdgeBufferName);
-	state.AttachEdge(raycastProgram, EdgeBufferName);
+	state.AttachDensity(distanceFieldProgram, "densityBuffer");
 
 	SetDistanceTextureSize(64);
 }

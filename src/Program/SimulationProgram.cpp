@@ -69,8 +69,8 @@ void SimulationProgram::Run()
 	state.AttachPosition(pressure, positionBufferName);
 
 	glUniform1f(0, 0.1);
-	glUniform1f(1, 20);
-	glUniform1f(2, 1200);
+	glUniform1f(1, 200);
+	glUniform1f(2, 250);
 
 	glDispatchCompute(state.GridRes(), state.GridRes(), state.GridRes());
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

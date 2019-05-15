@@ -22,7 +22,7 @@ layout(std430) restrict readonly buffer densityBuffer
     float density[];
 };
 
-const float Damping = 0.1;
+const float Damping = 0.3;
 
 layout(location = 0) uniform float dt;
 layout(location = 1) uniform vec3 gravityDir;
@@ -58,7 +58,7 @@ void main()
     }
     if(pos[1] > 1.0)
     {
-        pos[1] =  1.0 + 0.2 * Damping - 0.2 * Damping * pos[1];
+        pos[1] =  1.0 + Damping - Damping * pos[1];
         vel[1] = -Damping * vel[1];
     }
 

@@ -51,7 +51,7 @@ vec3 shade(vec3 pos, vec3 ray)
 
 	vec3 norm = getNorm(pos);
 
-	vec3 diffuse = 0.7 * clamp(dot(to_light, norm), 0, 1) * color * Kd;
+	vec3 diffuse = 0.7 * min(abs(dot(to_light, norm)), 1) * color * Kd;
 
 	vec3 specular = pow(clamp(dot(reflect(-to_light, norm), -ray), 0, 1), sE) * Ks * color;
 
@@ -140,11 +140,11 @@ void main()
 			break;
 
 		dist = texture(distanceText, rayPos).r;
-		if(dist < 0.016 || dist > 0.024)
+		if(dist < 0.01 || dist > 0.03)
 			continue;
 
 		float x = dist - 0.02;
-		color.a = exp(-30000 * x * x) * SampleStep * 10.0;
+		color.a = exp(-160000 * x * x) * SampleStep * 2;
 
 		color.rgb = shade(rayPos, rayDir);
 

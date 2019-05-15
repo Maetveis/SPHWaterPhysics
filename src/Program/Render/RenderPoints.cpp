@@ -25,7 +25,9 @@ RenderPoints::RenderPoints(SimulationState& _state) :
 	CompileShaders();
 
 	state.AttachPressure(renderProgram, PressureBufferName);
+	state.AttachParticleIndex(renderProgram, "indexBuffer");
 	state.AttachForce(renderProgram, ForceBufferName);
+	state.AttachDensity(renderProgram, "densityBuffer");
 }
 
 void RenderPoints::CompileShaders()
