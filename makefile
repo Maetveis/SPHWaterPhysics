@@ -11,11 +11,11 @@ MKDIR := mkdir
 
 ifeq ($(OS),Windows_NT)
   CXX := g++
-	OUT := bin/main.exe
+	OUT := bin/simulation.exe
 	LDLIBS := -lmingw32 $(LDLIBS) -lopengl32 -lglew32
 	#LDFLAGS += -mwindows
 else
-	OUT := bin/main.run
+	OUT := bin/simulation.run
     INCL :=
     LDLIBS += -lOpenGL -lGLEW
     MKDIR += -p

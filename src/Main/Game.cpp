@@ -63,7 +63,7 @@ bool Game::Init()
 		return false;
 
 	WindowInfo info;
-	info.SetTitle("asd dev");
+	info.SetTitle("SPH Water Simulation");
 	windowManager.SpawnWindow(info);
 
 	//Enable opengl debug output
