@@ -47,7 +47,7 @@ layout(location = 0) uniform float SmoothingLength;
 shared vec3  sharedPosition[64];
 shared vec3  sharedVelocity[64];
 shared float sharedPressure[64];
-shared float  sharedDensity[64];
+shared float sharedDensityInv[64];
 
 shared vec3 sharedForce[64];
 
@@ -62,7 +62,6 @@ shared gridCell gridIndex[27];
 vec3 selfPosition;
 vec3 selfVelocity;
 float selfPressure;
-float selfDensity;
 
 uint numThreadsBase;
 uint numThreads;
@@ -119,13 +118,12 @@ void loadSelfData()
     selfPosition = position[gridIndex[13].globalOffset + particleIndex];
 	selfVelocity = velocity[gridIndex[13].globalOffset + particleIndex];
 	selfPressure = pressure[gridIndex[13].globalOffset + particleIndex];
-	selfDensity  = density [gridIndex[13].globalOffset + particleIndex];
     if(particleSubIndex == 0)
     {
-        sharedPosition[particleIndex] = selfPosition;
-        sharedVelocity[particleIndex] = selfVelocity;
-		sharedPressure[particleIndex] = selfPressure;
-		sharedDensity [particleIndex] = selfDensity;
+        sharedPosition  [particleIndex] = selfPosition;
+        sharedVelocity  [particleIndex] = selfVelocity;
+		sharedPressure  [particleIndex] = selfPressure;
+		sharedDensityInv[particleIndex] = 1 / density [gridIndex[13].globalOffset + particleIndex];;
     }
     sharedForce[gl_LocalInvocationIndex] = vec3(0, 0, 0);
 }
@@ -156,11 +154,11 @@ void processGrid(uint grid)
 		if(r > 0.0000000000000001 && r < SmoothingLength)
 		{
             pressureForce -=
-                Mass * (sharedPressure[index] + selfPressure) / (2 * sharedDensity[index]) *
+                Mass * (sharedPressure[index] + selfPressure) * 0.5 * sharedDensityInv[index] *
                 spiky(r) * normalize(deltaPos);
 
             viscosityForce +=
-                Mass * ((sharedVelocity[index] - selfVelocity) / sharedDensity[index]) *
+                Mass * (sharedVelocity[index] - selfVelocity) * sharedDensityInv[index] *
                 viscosity(r);
 		}
 	}
@@ -175,10 +173,10 @@ void loadGrid(uint grid)
 {
     if(gl_LocalInvocationIndex < gridIndex[grid].len)
     {
-		sharedPosition[gl_LocalInvocationIndex] = position[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
-		sharedVelocity[gl_LocalInvocationIndex] = velocity[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
-		sharedPressure[gl_LocalInvocationIndex] = pressure[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
-		sharedDensity [gl_LocalInvocationIndex] = density [gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
+		sharedPosition  [gl_LocalInvocationIndex] = position[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
+		sharedVelocity  [gl_LocalInvocationIndex] = velocity[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
+		sharedPressure  [gl_LocalInvocationIndex] = pressure[gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
+		sharedDensityInv[gl_LocalInvocationIndex] = 1 / density [gridIndex[grid].globalOffset + gl_LocalInvocationIndex];
     }
 }
 
