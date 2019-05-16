@@ -1,7 +1,7 @@
 #version 450
 
 //Max particles in grid cell is 64
-layout(local_size_x = 64) in;
+layout(local_size_x = 128) in;
 
 layout(std430) restrict readonly buffer positionBuffer
 {
@@ -42,8 +42,8 @@ layout(location = 0) uniform float SmoothingLength;
 layout(location = 1) uniform float Stiffness;
 layout(location = 2) uniform float RestDensity;
 
-shared vec3 sharedPosition[64];
-shared float sharedDensity[64];
+shared vec3 sharedPosition[gl_WorkGroupSize.x];
+shared float sharedDensity[gl_WorkGroupSize.x];
 
 struct Sum
 {
@@ -51,7 +51,7 @@ struct Sum
     vec3 sum;
 };
 
-shared Sum sharedCenter[64];
+shared Sum sharedCenter[gl_WorkGroupSize.x];
 
 struct gridCell
 {
@@ -63,7 +63,6 @@ shared gridCell gridIndex[27];
 
 vec3 selfPosition;
 
-uint numThreadsBase;
 uint numThreads;
 uint particleIndex;
 uint particleSubIndex;
@@ -88,12 +87,12 @@ void calculateGridIndices()
     if(globalOffset < numGridCellsCubed - 1)
     {
         gridIndex[gl_LocalInvocationIndex].globalOffset = gridOffset[globalOffset];
-        gridIndex[gl_LocalInvocationIndex].len = min(gridOffset[globalOffset + 1] - gridIndex[gl_LocalInvocationIndex].globalOffset, 64);
+        gridIndex[gl_LocalInvocationIndex].len = min(gridOffset[globalOffset + 1] - gridIndex[gl_LocalInvocationIndex].globalOffset, gl_WorkGroupSize.x);
     }
     else if(globalOffset == numGridCellsCubed - 1)
     {
         gridIndex[gl_LocalInvocationIndex].globalOffset = gridOffset[globalOffset];
-        gridIndex[gl_LocalInvocationIndex].len = min(numParticles - gridIndex[gl_LocalInvocationIndex].globalOffset, 64);
+        gridIndex[gl_LocalInvocationIndex].len = min(numParticles - gridIndex[gl_LocalInvocationIndex].globalOffset, gl_WorkGroupSize.x);
     }
     else
     {
@@ -169,6 +168,10 @@ void main()
     if(gridIndex[13].len > 0)
     {
         loadSelfData();
+
+        barrier();
+        memoryBarrierShared();
+
         processGrid(13);
     }
 
@@ -176,6 +179,9 @@ void main()
     {
         if(index == 13)
             continue;
+
+        barrier();
+        memoryBarrierShared();
 
         if(gridIndex[13].len > 0 && gridIndex[index].len > 0)
             loadGrid(index);
