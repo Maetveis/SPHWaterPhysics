@@ -93,7 +93,7 @@ void SPHWaterScene::End()
 {
 
 }
-#include "../Program/Render/Direction.hpp"
+
 void SPHWaterScene::Pause()
 {
 

@@ -36,7 +36,7 @@ const uint numParticles = 0x20000;
 const float Mass = 0.005;
 const float Pi = 3.141592653589793;
 
-const float EdgeThreshHold = 0;
+const float EdgeThreshHold = 0.0001;
 
 layout(location = 0) uniform float SmoothingLength;
 layout(location = 1) uniform float Stiffness;
@@ -140,8 +140,8 @@ void processGrid(uint grid)
 		if(rsquared < SmoothingLength * SmoothingLength)
 		{
             float kern = poly6(rsquared);
-            sharedCenter[gl_LocalInvocationIndex].count += kern;
-            sharedCenter[gl_LocalInvocationIndex].sum += kern * deltaPos;
+            sharedCenter[gl_LocalInvocationIndex].count += 1;//kern;
+            sharedCenter[gl_LocalInvocationIndex].sum += /*kern * */deltaPos;
 			sharedDensity[gl_LocalInvocationIndex] += kern;//poly6(rsquared);
 		}
     }
