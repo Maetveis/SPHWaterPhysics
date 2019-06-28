@@ -2,7 +2,7 @@
 Smoothed Particle Hydrodinamics (SPH) based 3D water simulation running on OpenGL compute shaders
 
 ## Demo Video
-![Fluid Simulation Demo](assets/demo.mkv)
+![Fluid Simulation Demo](assets/demo.m4v)
 
 ## Building
 ### Requirements:
