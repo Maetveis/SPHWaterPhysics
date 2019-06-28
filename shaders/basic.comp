@@ -22,7 +22,7 @@ layout(std430) restrict readonly buffer densityBuffer
     float density[];
 };
 
-const float Damping = 0.7;
+const float Damping = 0.3;
 
 layout(location = 0) uniform float dt;
 layout(location = 1) uniform vec3 gravityDir;
